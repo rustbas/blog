@@ -1,6 +1,6 @@
-# Welcome to my blog
+# Обо мне
 
-
+Проверка работы *GitHub Actions*.
 
 ## Commands
 
