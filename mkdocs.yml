@@ -1,4 +1,7 @@
 site_name: Записки шизофреника
+site_url: https://rustbas.github.io/blog
+theme:
+    name: material
 
 markdown_extensions:
   - pymdownx.arithmatex:
