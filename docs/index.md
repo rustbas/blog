@@ -1,6 +1,6 @@
-# Welcome to MkDocs
+# Welcome to my blog
 
-For full documentation visit [mkdocs.org](https://www.mkdocs.org).
+
 
 ## Commands
 
@@ -8,6 +8,12 @@ For full documentation visit [mkdocs.org](https://www.mkdocs.org).
 * `mkdocs serve` - Start the live-reloading docs server.
 * `mkdocs build` - Build the documentation site.
 * `mkdocs -h` - Print help message and exit.
+
+## Testing
+
+$$\Huge
+\lim_{N \rightarrow \infty}\sum_{i=1}^N \frac{1}{i} = \infty
+$$
 
 ## Project layout
 
