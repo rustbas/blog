@@ -1,7 +1,12 @@
 site_name: Записки шизофреника
 site_url: https://rustbas.github.io/blog
 theme:
-    name: material
+    name: terminal
+    palette: dark
+
+plugins:
+  - search:
+      lang: ["ru", "en"]
 
 markdown_extensions:
   - pymdownx.arithmatex:
@@ -9,6 +14,7 @@ markdown_extensions:
   - admonition
   - pymdownx.details
   - pymdownx.superfences
+  - footnotes
 
 extra_javascript:
   - javascripts/mathjax.js
