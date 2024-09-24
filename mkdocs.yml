@@ -1,8 +1,13 @@
 site_name: Записки шизофреника
 site_url: https://rustbas.github.io/blog
+repo_url: https://github.com/rustbas/blog
+edit_uri: edit/main/docs/
 theme:
     name: terminal
     palette: dark
+    features:
+      - revision.date
+      - revision.history
 
 nav:
   - "Обо мне": 'index.md'
@@ -12,6 +17,7 @@ plugins:
   - search:
       lang: ["ru", "en"]
       indexing: 'full'
+  - git-revision-date
 
 markdown_extensions:
   - pymdownx.arithmatex:
