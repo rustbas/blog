@@ -4,6 +4,10 @@ theme:
     name: terminal
     palette: dark
 
+nav:
+  - "Обо мне": 'index.md'
+  - "Математика": 'maths/index.md'
+
 plugins:
   - search:
       lang: ["ru", "en"]
