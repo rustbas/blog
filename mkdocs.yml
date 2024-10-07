@@ -10,8 +10,9 @@ theme:
       - revision.history
       - navigation.side.hide
 nav:
-  - "Обо мне": 'index.md'
+  # - "Обо мне": 'index.md'
   - "Математика": 'maths/index.md'
+  - "Linux": 'linux/index.md'
 
 plugins:
   - search:
