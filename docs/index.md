@@ -1,6 +1,7 @@
-# Обо мне
 
-![Image](./assets/3O0A5142-photoaidcom-cropped.jpg){ align=left width="250" style="float:left; padding-right:10px" }
+![Image](./assets/3O0A5142-photoaidcom-cropped.jpg){width="350" style="display: block; margin: 0 auto"}
+
+# Обо мне
 
 Меня зовут Рустам.
 
