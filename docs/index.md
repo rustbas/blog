@@ -1,8 +1,6 @@
 
 ![Image](./assets/3O0A5142-photoaidcom-cropped.jpg){width="350" style="display: block; margin: 0 auto"}
 
-# Обо мне
-
 Меня зовут Рустам.
 
 Люблю Linux и все, что связано с ним. 
