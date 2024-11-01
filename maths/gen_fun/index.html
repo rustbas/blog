@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <meta name="generator" content="mkdocs-1.6.1, mkdocs-terminal-4.6.0">
+     
+     
+    
+    <link rel="canonical" href="https://rustbas.github.io/blog/maths/gen_fun/"><link rel="icon" type="image/png" sizes="192x192" href="../../img/android-chrome-192x192.png" />
+<link rel="icon" type="image/png" sizes="512x512" href="../../img/android-chrome-512x512.png" />
+<link rel="apple-touch-icon" sizes="180x180" href="../../img/apple-touch-icon.png" />
+<link rel="shortcut icon" type="image/png" sizes="48x48" href="../../img/favicon.ico" />
+<link rel="icon" type="image/png" sizes="16x16" href="../../img/favicon-16x16.png" />
+<link rel="icon" type="image/png" sizes="32x32" href="../../img/favicon-32x32.png" />
+
+
+    
+ 
+<title>Немного про производящие функции - Очередные записки очередного гика</title>
+
+
+<link href="../../css/fontawesome/css/fontawesome.min.css" rel="stylesheet">
+<link href="../../css/fontawesome/css/solid.min.css" rel="stylesheet">
+<link href="../../css/normalize.css" rel="stylesheet">
+<link href="../../css/terminal.css" rel="stylesheet">
+<link href="../../css/theme.css" rel="stylesheet">
+<link href="../../css/theme.tile_grid.css" rel="stylesheet">
+<link href="../../css/theme.footer.css" rel="stylesheet">
+<!-- dark color palette -->
+<link href="../../css/palettes/dark.css" rel="stylesheet">
+
+<!-- page layout -->
+<style>
+/* initially set page layout to a one column grid */
+.terminal-mkdocs-main-grid {
+    display: grid;
+    grid-column-gap: 1.4em;
+    grid-template-columns: auto;
+    grid-template-rows: auto;
+}
+
+</style>
+
+
+
+     
+    
+    
+
+    
+    <!-- search css support -->
+<link href="../../css/search/bootstrap-modal.css" rel="stylesheet">
+<!-- search scripts -->
+<script>
+    var base_url = "../..",
+    shortcuts = "{}";
+</script>
+<script src="../../js/jquery/jquery-1.10.1.min.js" defer></script>
+<script src="../../js/bootstrap/bootstrap.min.js" defer></script>
+<script src="../../js/mkdocs/base.js" defer></script>
+    
+    
+    
+    
+    <script src="../../javascripts/mathjax.js"></script>
+    
+    <script src="https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js"></script>
+    
+    <script src="../../search/main.js"></script>
+    
+
+    
+</head>
+
+<body class="terminal"><div class="container">
+    <div class="terminal-nav">
+        <header class="terminal-logo">
+            <div id="mkdocs-terminal-site-name" class="logo terminal-prompt"><a href="https://rustbas.github.io/blog/" class="no-style">Очередные записки очередного гика</a></div>
+        </header>
+        
+        <nav class="terminal-menu">
+            
+            <ul vocab="https://schema.org/" typeof="BreadcrumbList">
+                
+                
+                <li property="itemListElement" typeof="ListItem">
+                    <a href="../" class="menu-item " property="item" typeof="WebPage">
+                        <span property="name">Математика</span>
+                    </a>
+                    <meta property="position" content="0">
+                </li>
+                
+                
+                <li property="itemListElement" typeof="ListItem">
+                    <a href="../../linux/" class="menu-item " property="item" typeof="WebPage">
+                        <span property="name">Linux</span>
+                    </a>
+                    <meta property="position" content="1">
+                </li>
+                
+                    
+                    
+
+
+<li property="itemListElement" typeof="ListItem">
+    <a href="#" class="menu-item" data-toggle="modal" data-target="#mkdocs_search_modal" property="item" typeof="SearchAction">
+        <i aria-hidden="true" class="fa fa-search"></i> <span property="name">Search</span>
+    </a>
+    <meta property="position" content="2">
+</li>
+                    
+            </ul>
+            
+        </nav>
+    </div>
+</div>
+        
+    <div class="container">
+        <div class="terminal-mkdocs-main-grid">
+            <main id="terminal-mkdocs-main-content">
+    
+    
+    
+    
+    
+
+<section id="mkdocs-terminal-content">
+    <h1 id="_1">Немного про производящие функции</h1>
+<h2 id="_2">Мотивация</h2>
+<p>Идея данной публикации родилась в процессе чтения статьи на <a href="https://neerc.ifmo.ru/wiki/index.php?title=%D0%9F%D1%80%D0%BE%D0%B8%D0%B7%D0%B2%D0%BE%D0%B4%D1%8F%D1%89%D0%B0%D1%8F_%D1%84%D1%83%D0%BD%D0%BA%D1%86%D0%B8%D1%8F#.D0.9F.D1.80.D0.B8.D0.BC.D0.B5.D1.80.D1.8B_.D1.80.D0.B5.D1.88.D0.B5.D0.BD.D0.B8.D0.B9_.D0.B7.D0.B0.D0.B4.D0.B0.D1.87_.D0.BC.D0.B5.D1.82.D0.BE.D0.B4.D0.BE.D0.BC_.D0.BF.D1.80.D0.BE.D0.B8.D0.B7.D0.B2.D0.BE.D0.B4.D1.8F.D1.89.D0.B8.D1.85_.D1.84.D1.83.D0.BD.D0.BA.D1.86.D0.B8.D0.B9">викиконспектах</a> о производящих рядах. Мне показалось очень интересным, что существует способ решения рекуррентных уравнений с помощью бесконечных сумм.</p>
+<p>Здесь мы собираемся рассмотреть что такое производящая функция, разложение в ряд Тейлора, а также затронем математическую индукцию.</p>
+<h2 id="_3">Ликбез</h2>
+<p>Для начала, по моему мнению, нужно кратко описать сущности, которые появляются в статье. </p>
+<h3 id="_4">Кратко о производящей функции последовательности</h3>
+<p><em><strong>Производя́щая фу́нкция после́довательности</strong> — алгебраическое понятие, которое позволяет работать с разными комбинаторными объектами аналитическими методами. Они дают гибкий способ описывать соотношения в комбинаторике, а иногда помогают вывести явные формулы для числа комбинаторных объектов определённого типа.</em> (<a href="https://ru.wikipedia.org/wiki/%D0%9F%D1%80%D0%BE%D0%B8%D0%B7%D0%B2%D0%BE%D0%B4%D1%8F%D1%89%D0%B0%D1%8F_%D1%84%D1%83%D0%BD%D0%BA%D1%86%D0%B8%D1%8F_%D0%BF%D0%BE%D1%81%D0%BB%D0%B5%D0%B4%D0%BE%D0%B2%D0%B0%D1%82%D0%B5%D0%BB%D1%8C%D0%BD%D0%BE%D1%81%D1%82%D0%B8">Википедия</a>)</p>
+<p>Для последовательности <span class="arithmatex">\(\{a_n\}\)</span> производящим рядом называется бесконечная сумма:</p>
+<div class="arithmatex">\[\Large{
+G(z) = \sum_{n=0}^\infty a_nz^n.
+}\]</div>
+<p>В данной статье описывается, как использовать производящий ряд последовательности для решения рекуррентных уравнений вида:</p>
+<div class="arithmatex">\[\Large{
+a_n = f(a_{n-1}, \dots, a_0).
+}\]</div>
+<h3 id="_5">Кратко о ряде Тейлора</h3>
+<p><em><strong>Ряд Те́йлора</strong> — разложение функции в бесконечную сумму степенных функций.</em> (<a href="https://ru.wikipedia.org/wiki/%D0%A0%D1%8F%D0%B4_%D0%A2%D0%B5%D0%B9%D0%BB%D0%BE%D1%80%D0%B0">Википедия</a>)</p>
+<p>Для бесконечно дифференцируемой функции <span class="arithmatex">\(f(x)\)</span> в окрестности точки <span class="arithmatex">\(a\)</span> рядом Тейлора называется ряд:</p>
+<div class="arithmatex">\[\Large{
+f(x) = \sum_{n=0}^\infty \frac{f^{(n)}(a)}{n!}(x-a)^n.
+}\]</div>
+<p>В нашем случае этот ряд будет полезен тем, что когда мы вычислим производящую функцию последовательности в виде дроби, мы сможем разложить её в ряд и найти общую формулу для элементов последовательности. </p>
+<h3 id="_6">Кратко о математической индукции</h3>
+<p><em><strong>Математическая индукция</strong> — метод математического
+доказательства, который используется, чтобы доказать
+истинность некоторого утверждения для всех натуральных
+чисел. Для этого сначала проверяется истинность утверждения
+с номером <span class="arithmatex">\(1\)</span>  — база (базис) индукции, а затем
+доказывается, что если верно утверждение с номером <span class="arithmatex">\(n\)</span>, то
+верно и следующее утверждение с номером <span class="arithmatex">\(n+1\)</span> — шаг
+индукции, или индукционный переход.</em>
+(<a href="https://ru.wikipedia.org/wiki/%D0%9C%D0%B0%D1%82%D0%B5%D0%BC%D0%B0%D1%82%D0%B8%D1%87%D0%B5%D1%81%D0%BA%D0%B0%D1%8F_%D0%B8%D0%BD%D0%B4%D1%83%D0%BA%D1%86%D0%B8%D1%8F">Википедия</a>)</p>
+<p>Нам понадобится этот метод для того, чтобы доказать верность формулы, которую мы получим. Применяя к нашему случаю, можно сформулировать идею доказательства так:</p>
+<ol>
+<li>Нужно доказать <strong>базу индукции</strong>. То есть, что формула верна для <span class="arithmatex">\(a_0\)</span> и <span class="arithmatex">\(a_1\)</span>.</li>
+<li>Нужно доказать <strong>переход индукции</strong>. В нашем случае, это означает, что нужно проверить, что формула удовлетворяет изначальному рекуррентному уравнению. </li>
+</ol>
+<p>Идея доказательства состоит в том, что для любого <span class="arithmatex">\(k &gt; 1\)</span> наша формула будет верна, потому что она рекурсивно раскладывается с помощью <strong>верного перехода</strong> до <strong>верных базовых случаев</strong>.</p>
+<h2 id="_7">Получение ряда в замкнутом виде</h2>
+<p>Первое, что нам нужно сделать, это найти ряд в замкнутом виде, т. е. в виде дроби. </p>
+<p>По определению:
+$$
+\Large{
+G(z) = \sum_{n=0}^\infty a_n z^n
+}
+$$</p>
+<p>Тогда можно вынести первые два члена, которые известны:</p>
+<div class="arithmatex">\[\Large{
+G(z) = a_0 + a_1 z + \sum_{n=2}^\infty a_n z^n
+}\]</div>
+<p>По формуле чисел Фибоначчи:</p>
+<div class="arithmatex">\[
+\Large{
+G(z) = a_0 + a_1 z + \sum_{n=2}^\infty (a_{n-1} + a_{n-2}) z^n = 
+}
+\]</div>
+<div class="arithmatex">\[
+\Large{
+= a_0 + a_1 z + \sum_{n=2}^\infty a_{n-1} z^{n-1} z + 
+\sum_{n=2}^\infty a_{n-2} z^{n-2} z^2 =
+}
+\]</div>
+<div class="arithmatex">\[
+\Large{
+= a_0 + a_1 z + z\underbrace{\sum_{n=2}^\infty a_{n-1} z^{n-1}}_{(I)} + 
+z^2 \underbrace{\sum_{n=2}^\infty a_{n-2} z^{n-2}}_{(II)}
+}
+\]</div>
+<p>Рассмотрим <span class="arithmatex">\((I)\)</span> и <span class="arithmatex">\((II)\)</span>.</p>
+<div class="arithmatex">\[\Large{
+(I) = \sum_{n=2}^\infty a_{n-1} z^{n-1} = \left&lt; 
+\begin{split}
+k = n-1\\
+n = k+1
+\end{split}
+\right&gt; = \sum_{k=1}^\infty a_{k} z^{k} = 
+}\]</div>
+<div class="arithmatex">\[\Large{
+= \underbrace{a_0 + \sum_{k=1}^\infty a_{k} z^{k}}_
+{\sum_{k=0}^\infty a_{k} z^{k}}
+- a_0 
+= \sum_{k=0}^\infty a_{k} z^{k} - a_0 = G(z) - a_0
+}\]</div>
+<div class="arithmatex">\[\Large{
+(II) = \sum_{n=2}^\infty a_{n-2} z^{n-2} = 
+\left&lt;
+\begin{split}
+k = n-2\\
+n = k+2
+\end{split}
+\right&gt; 
+= \sum_{k=0}^\infty a_{k} z^{k} = G(z)
+}\]</div>
+<p>Здесь мы производим замену и приводим суммы к виду <span class="arithmatex">\(\sum\limits_{i=0}^\infty a_iz^i\)</span>. Очевидно, значение суммы не зависит от названия счетчика <span class="arithmatex">\(i\)</span>. </p>
+<p>Таким образом:</p>
+<div class="arithmatex">\[\Large{
+G(z) = a_0 + a_1 z + z \left( G\left(z\right) - a_0 \right) + z^2G(z) = 
+}\]</div>
+<div class="arithmatex">\[\Large{
+= a_0 + a_1 z + z G(z) - a_0 z + z^2 G(z)
+}\]</div>
+<p>Перенесем все члены с <span class="arithmatex">\(G(z)\)</span> влево:</p>
+<div class="arithmatex">\[\Large{
+G(z) - zG(z) - z^2 G(z) = a_0 +a_1z-a_0z
+}\]</div>
+<div class="arithmatex">\[\Large{
+G(z)\left(1 - z - z^2\right)  = a_0 +a_1z-a_0z
+}\]</div>
+<p>В итоге, получаем:</p>
+<div class="arithmatex">\[\Large{
+G(z) = \frac{a_0 +a_1z-a_0z}{1 - z - z^2}
+}\]</div>
+<blockquote>
+<p><em>Замечание</em>: получившееся дробь правильная. То есть степень многочлена в знаменателе больше, чем в числителе.</p>
+</blockquote>
+<h2 id="_8">Разложение дроби на элементарные дроби</h2>
+<p>Мы получили ряд:</p>
+<div class="arithmatex">\[\Large{
+G(z) = \frac{a_0 + a_1 z - a_0 z}{1 - z - z^2}
+}\]</div>
+<p>Рассмотрим знаменатель:</p>
+<div class="arithmatex">\[\Large{
+-z^2 - z + 1 = 0
+}\]</div>
+<p>Разложим его на множители:</p>
+<div class="arithmatex">\[\Large{
+D = (-1)^2 - 4 \cdot 1 \cdot (-1) = 5
+}\]</div>
+<div class="arithmatex">\[\Large{
+\begin{split}
+z_{1} = - \frac{1 + \sqrt{5}}{2}\\
+z_{2} = - \frac{1 - \sqrt{5}}{2}
+\end{split}
+}\]</div>
+<p>Тогда:</p>
+<div class="arithmatex">\[\Large{
+-z^2 -z + 1 = -(z - z_1)(z - z_2)
+}\]</div>
+<p>Таким образом, мы можем записать:</p>
+<div class="arithmatex">\[\Large{
+G(z) = \frac{a_0 + a_1 z - a_0 z}{-(z-z_1)(z-z_2)} =
+\frac{A}{z-z_1} + \frac{B}{z - z_2}
+}\]</div>
+<p>Домножим обе части на <span class="arithmatex">\(-(z-z_1)(z-z_2)\)</span>:</p>
+<div class="arithmatex">\[\Large{
+a_0 + a_1 z - a_0 z = -A(z-z_2) - B(z-z_1)
+}\]</div>
+<p>Раскроем скобки и сгруппируем относительно степеней <span class="arithmatex">\(z\)</span>:</p>
+<div class="arithmatex">\[\Large{
+a_0 + z(a_1 - a_0) = -Az + Az_2 - Bz + Bz_1 = (Az_2 + Bz_1) + z(-A -B)
+}\]</div>
+<p>Получаем систему линейных уравнений с двумя неизвестными:</p>
+<div class="arithmatex">\[\Large{
+\begin{cases}
+    &amp;Az_2 &amp;+ &amp;B z_1 &amp;= a_0\\
+    &amp;A   &amp;+ &amp;B    &amp;= a_0 - a_1
+\end{cases}
+}\]</div>
+<p>Решение тривиально, опустим его. Приведу только ответ:</p>
+<div class="arithmatex">\[\Large{
+\begin{cases}
+&amp;A = a_0 - a_1 - \frac{a_0 - a_0z_2 + a_1z_2}{z_1-z_2}\\
+&amp;B = \frac{a_0 - a_0z_2 + a_1z_2}{z_1-z_2}
+\end{cases}
+}\]</div>
+<p>Таким образом, получаем следующий результат:</p>
+<div class="arithmatex">\[\Large{
+\begin{cases}
+z_{1} &amp;= - \frac{1 + \sqrt{5}}{2}\\
+z_{2} &amp;= - \frac{1 - \sqrt{5}}{2}\\
+A &amp;= a_0 - a_1 - \frac{a_0 - a_0z_2 + a_1z_2}{z_1-z_2}\\
+B &amp;= \frac{a_0 - a_0z_2 + a_1z_2}{z_1-z_2}\\
+G(z) &amp;= \frac{A}{z - z_1} + \frac{B}{z - z_2}
+\end{cases}
+}\]</div>
+<h2 id="_9">Доказательство по индукции</h2>
+<h3 id="_10">База индукции</h3>
+<h4 id="n-0"><span class="arithmatex">\(n = 0\)</span></h4>
+<p>Подставим <span class="arithmatex">\(n=0\)</span> в полученную формулу:</p>
+<div class="arithmatex">\[\Large{
+a_0 = \left(
+    -\frac{A}{z_1} - \frac{B}{z_2}
+\right)
+}\]</div>
+<p>Рассмотрим <span class="arithmatex">\(A\)</span>:</p>
+<div class="arithmatex">\[\Large{
+A = \frac{a_0z_1-a_0z_2-a_1z_1+a_1z_2-a_0+a_0z_2-a_1z_2}{z_1-z_2} = 
+}\]</div>
+<div class="arithmatex">\[\Large{
+ = \frac{a_0z_1-\cancelto{0}{a_0z_2+a_0z_2}-a_1z_1+
+\cancelto{0}{a_1z_2-a_1z_2}-a_0}{z_1-z_2} = 
+}\]</div>
+<div class="arithmatex">\[\Large{
+ = \frac{a_0z_1-a_1z_1-a_0}{z_1-z_2} = z_1\frac{a_0-a_1}{z_1-z_2}-\frac{a_0}{z_1-z_2}
+}\]</div>
+<p>Проведя аналогичные вычисления  для <span class="arithmatex">\(B\)</span> получим:</p>
+<div class="arithmatex">\[\Large{
+B = \frac{a_0}{z_1-z_2} - z_2 \frac{a_0-a_1}{z_1-z_2}
+}\]</div>
+<p>Тогда:</p>
+<div class="arithmatex">\[\Large{
+a_0 = \frac{a_0}{z_1(z_1-z_2)} - \frac{z_1}{z_1}\frac{a_0-a_1}{z_1-z_2} + 
+}\]</div>
+<div class="arithmatex">\[\Large{
++ \frac{z_2}{z_2}\frac{a_0-a_1}{z_1-z_2} - \frac{a_0}{z_1-z_2} = 
+}\]</div>
+<div class="arithmatex">\[\Large{
+=\frac{a_0}{z_1(z_1-z_2)} - \cancelto{0}{\frac{a_0-a_1}{z_1-z_2} + 
+\frac{a_0-a_1}{z_1-z_2}} - \frac{a_0}{z_2(z_1-z_2)} = 
+}\]</div>
+<div class="arithmatex">\[\Large{
+= \frac{a_0z_2-a_0z_1}{z_1z_2(z_1-z_2)} = 
+-\frac{a_0(z_1-z_2)}{z_1z_2(z_1-z_2)} = -\frac{a_0}{z_1z_2}
+}\]</div>
+<p>Рассмотрим <span class="arithmatex">\(z_1z_2\)</span>:</p>
+<div class="arithmatex">\[\Large{
+z_1z_2 = \frac{(1+\sqrt{5})(1-\sqrt{5})}{2\cdot2} = \frac{1-5}{4} = -1
+}\]</div>
+<p>Подставив результат в наше выражение:</p>
+<div class="arithmatex">\[\Large{
+-\frac{a_0}{-1} = a_0, \text{ Q.E.D.}
+}\]</div>
+<h4 id="n-1"><span class="arithmatex">\(n = 1\)</span></h4>
+<p>По нашей формуле:</p>
+<div class="arithmatex">\[\Large{
+a_1 = 
+-\left(
+    \frac{A}{z_1^2} + 
+    \frac{B}{z_2^2} 
+\right) = 
+}\]</div>
+<div class="arithmatex">\[\Large{
+= -\left(
+    \frac{a_0-a_1}{z_1(z_1-z_2)} - \frac{a_0}{z_1(z_1-z_2)} +
+    \frac{a_0}{z_2(z_1-z_2)} - \frac{a_0-a_1}{z_2(z_1-z_2)}
+\right) = 
+}\]</div>
+<div class="arithmatex">\[\Large{
+= -\left(
+    \frac{a_0-a_1}{z_1-z_2} \left(
+        \frac{1}{z_1} - 
+        \frac{1}{z_2}
+    \right) +
+    \frac{a_0}{z_1-z_2} \left(
+        \frac{1}{z_1^2} - 
+        \frac{1}{z_2^2}
+    \right)
+\right) = 
+}\]</div>
+<div class="arithmatex">\[\Large{
+= -\left(
+    \frac{(a_0-a_1)(z_2-z_1)}{z_1z_2(z_1-z_2)}  +
+    \frac{a_0(z_1^2-z_2^2)}{z_1^2z_2^2(z_1-z_2)}  +
+\right) = 
+}\]</div>
+<p>Как мы доказали: </p>
+<div class="arithmatex">\[\Large{
+z_1z_2 = -1
+}\]</div>
+<p>Также рассмотрим <span class="arithmatex">\(z_1 + z_2\)</span>:</p>
+<div class="arithmatex">\[\Large{
+z_1+z_2 = \frac{-1-
+\cancelto{0}{\sqrt{5}+\sqrt{5}}
+-1}{2} = 
+\frac{-1-1}{2} = 
+-1
+}\]</div>
+<p>Подставив значения в выражение, получим:</p>
+<div class="arithmatex">\[\Large{
+= -\left(
+    a_0 - a_1 +
+    \frac{a_0(z_1-z_2)(z_1+z_2)}{(z_1-z_2)}  +
+\right) = 
+}\]</div>
+<div class="arithmatex">\[\Large{
+= -\left(
+    \cancelto{0}{a_0 - a_0}
+    -a_1
+\right) = -(-a_1) = a_1, \text{ Q.E.D.}
+}\]</div>
+<h3 id="_11">Переход индукции</h3>
+<p>По определению чисел Фибоначчи:</p>
+<div class="arithmatex">\[\Large{
+a_{n+2} = a_{n+1}+a_n
+}\]</div>
+<p>где:</p>
+<div class="arithmatex">\[\Large{
+a_n = \left(
+-\frac{A}{z_1^{n+1}}-\frac{B}{z_2^{n+1}}
+\right)
+}\]</div>
+<p>Подставим это в формулу:</p>
+<div class="arithmatex">\[\Large{
+a_{n+2} = a_{n+1}+a_n =
+-\frac{A}{z_1^{n+1}}-\frac{B}{z_2^{n+1}}
+-\frac{A}{z_1^{n+2}}-\frac{B}{z_2^{n+2}} = 
+}\]</div>
+<p>Сгруппируем по <span class="arithmatex">\(A\)</span> и <span class="arithmatex">\(B\)</span>:</p>
+<div class="arithmatex">\[\Large{
+= -A \underbrace{\left(
+\frac{1}{z_1^{n+1}}+
+\frac{1}{z_1^{n+2}}
+\right)}_{(I)}
+%
+-B \underbrace{\left(
+\frac{1}{z_2^{n+1}}+
+\frac{1}{z_2^{n+2}}
+\right)}_{(II)}
+}\]</div>
+<p>Рассмотрим <span class="arithmatex">\((I)\)</span> и <span class="arithmatex">\((II)\)</span>:</p>
+<div class="arithmatex">\[\Large{
+(I) = 
+\frac{z_1+1}{z_1^{n+2}}
+}\]</div>
+<div class="arithmatex">\[\Large{
+z_1 + 1 = 
+-\frac{1+\sqrt{5}}{2} + 1 = 
+\frac{-1-\sqrt{5}+2}{2} =
+}\]</div>
+<div class="arithmatex">\[\Large{
+=
+\frac{1-\sqrt{5}}{2} =
+\frac{(1-\sqrt{5})(1+\sqrt{5})}{2(1+\sqrt{5})} =
+}\]</div>
+<div class="arithmatex">\[\Large{
+= \frac{1 - 5}{2(1+\sqrt{5})} =
+\frac{-4}{2(1+\sqrt{5})} = 
+ - \frac{2}{1+\sqrt{5}} = \frac{1}{z_1}
+}\]</div>
+<p>Таким образом:</p>
+<div class="arithmatex">\[\Large{
+(I) = \frac{1}{z_1^{n+3}}
+}\]</div>
+<p>Аналогично для <span class="arithmatex">\((II)\)</span>:</p>
+<div class="arithmatex">\[\Large{
+(II) = 
+\frac{z_2+1}{z_2^{n+2}}
+}\]</div>
+<div class="arithmatex">\[\Large{
+z_2 + 1 = 
+-\frac{1-\sqrt{5}}{2} + 1 = 
+\frac{-1+\sqrt{5}+2}{2} =
+}\]</div>
+<div class="arithmatex">\[\Large{
+= \frac{-1+\sqrt{5}+2}{2} =
+\frac{1+\sqrt{5}}{2} =
+}\]</div>
+<div class="arithmatex">\[\Large{
+= \frac{(1+\sqrt{5})(1-\sqrt{5})}{2(1-\sqrt{5})} =
+\frac{1 - 5}{2(1-\sqrt{5})} =
+}\]</div>
+<div class="arithmatex">\[\Large{
+= \frac{-4}{2(1-\sqrt{5})} =
+-\frac{2}{1-\sqrt{5}} = 
+\frac{1}{z_2}
+}\]</div>
+<p>Подставив это в <span class="arithmatex">\((II)\)</span>:</p>
+<div class="arithmatex">\[\Large{
+(II) = \frac{1}{z_2^{n+3}}
+}\]</div>
+<p>Подставляя <span class="arithmatex">\((I)\)</span> и <span class="arithmatex">\((II)\)</span>:</p>
+<div class="arithmatex">\[\Large{
+-A \underbrace{\left(
+\frac{1}{z_1^{n+1}}+
+\frac{1}{z_1^{n+2}}
+\right)}_{(I)}
+-B \underbrace{\left(
+\frac{1}{z_2^{n+1}}+
+\frac{1}{z_2^{n+2}}
+\right)}_{(II)} = 
+}\]</div>
+<div class="arithmatex">\[\Large{
+= -A \frac{1}{z_1^{n+3}}
+-B \frac{1}{z_2^{n+3}} = 
+a_{n+2}, \text{ Q.E.D.}
+}\]</div>
+<h2 id="_12">Выводы</h2>
+<p>В данной публикации были рассмотрены:</p>
+<ul>
+<li>получение производящей функции из рекуррентного уравнения;</li>
+<li>разложение функции в ряд для нахождения <span class="arithmatex">\(n\)</span>-го члена последовательности;</li>
+<li>доказана верность полученной формулы с помощью математической индукции.</li>
+</ul>
+<p>Очевидно, что полезность данной формулы в случае чисел Фибоначчи сомнительна. Но она может служить полезным примером того, как можно решить линейное рекуррентное уравнение. </p>
+</section>
+
+<section id="mkdocs-terminal-after-content">
+    
+</section>
+<section id="mkdocs-terminal-revision">
+<br>
+<aside>
+    <p>
+        <small>
+            <i>Page last updated 2024-11-01. See revision history on <a href="https://github.com/rustbas/blog/commits/main/docs/maths/gen_fun.md">GitHub</a>.</i>
+        </small>
+    </p>
+</aside>
+</section>
+            </main>
+        </div>
+        <hr><footer>
+    <div class="terminal-mkdocs-footer-grid">
+        <div id="terminal-mkdocs-footer-copyright-info">
+             Site built with <a href="http://www.mkdocs.org">MkDocs</a> and <a href="https://github.com/ntno/mkdocs-terminal">Terminal for MkDocs</a>.
+        </div>
+    </div>
+</footer>
+    </div>
+
+    
+    <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="alertdialog" aria-modal="true" aria-labelledby="searchModalLabel">
+    <div class="modal-dialog modal-lg" role="search">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="searchModalLabel">Search</h5>
+                <button type="button" class="close btn btn-default btn-ghost" data-dismiss="modal"><span aria-hidden="true">x</span><span class="sr-only">Close</span></button>
+            </div>
+            <div class="modal-body">
+                <p id="searchInputLabel">Type to start searching</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" aria-labelledby="searchInputLabel" placeholder="" id="mkdocs-search-query" title="Please enter search terms here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No document matches found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+    
+    
+</body>
+
+</html>

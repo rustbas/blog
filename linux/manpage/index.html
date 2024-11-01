@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <meta name="generator" content="mkdocs-1.6.1, mkdocs-terminal-4.6.0">
+     
+     
+    
+    <link rel="canonical" href="https://rustbas.github.io/blog/linux/manpage/"><link rel="icon" type="image/png" sizes="192x192" href="../../img/android-chrome-192x192.png" />
+<link rel="icon" type="image/png" sizes="512x512" href="../../img/android-chrome-512x512.png" />
+<link rel="apple-touch-icon" sizes="180x180" href="../../img/apple-touch-icon.png" />
+<link rel="shortcut icon" type="image/png" sizes="48x48" href="../../img/favicon.ico" />
+<link rel="icon" type="image/png" sizes="16x16" href="../../img/favicon-16x16.png" />
+<link rel="icon" type="image/png" sizes="32x32" href="../../img/favicon-32x32.png" />
+
+
+    
+ 
+<title>Немного про мануалы - Очередные записки очередного гика</title>
+
+
+<link href="../../css/fontawesome/css/fontawesome.min.css" rel="stylesheet">
+<link href="../../css/fontawesome/css/solid.min.css" rel="stylesheet">
+<link href="../../css/normalize.css" rel="stylesheet">
+<link href="../../css/terminal.css" rel="stylesheet">
+<link href="../../css/theme.css" rel="stylesheet">
+<link href="../../css/theme.tile_grid.css" rel="stylesheet">
+<link href="../../css/theme.footer.css" rel="stylesheet">
+<!-- dark color palette -->
+<link href="../../css/palettes/dark.css" rel="stylesheet">
+
+<!-- page layout -->
+<style>
+/* initially set page layout to a one column grid */
+.terminal-mkdocs-main-grid {
+    display: grid;
+    grid-column-gap: 1.4em;
+    grid-template-columns: auto;
+    grid-template-rows: auto;
+}
+
+</style>
+
+
+
+     
+    
+    
+
+    
+    <!-- search css support -->
+<link href="../../css/search/bootstrap-modal.css" rel="stylesheet">
+<!-- search scripts -->
+<script>
+    var base_url = "../..",
+    shortcuts = "{}";
+</script>
+<script src="../../js/jquery/jquery-1.10.1.min.js" defer></script>
+<script src="../../js/bootstrap/bootstrap.min.js" defer></script>
+<script src="../../js/mkdocs/base.js" defer></script>
+    
+    
+    
+    
+    <script src="../../javascripts/mathjax.js"></script>
+    
+    <script src="https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js"></script>
+    
+    <script src="../../search/main.js"></script>
+    
+
+    
+</head>
+
+<body class="terminal"><div class="container">
+    <div class="terminal-nav">
+        <header class="terminal-logo">
+            <div id="mkdocs-terminal-site-name" class="logo terminal-prompt"><a href="https://rustbas.github.io/blog/" class="no-style">Очередные записки очередного гика</a></div>
+        </header>
+        
+        <nav class="terminal-menu">
+            
+            <ul vocab="https://schema.org/" typeof="BreadcrumbList">
+                
+                
+                <li property="itemListElement" typeof="ListItem">
+                    <a href="../../maths/" class="menu-item " property="item" typeof="WebPage">
+                        <span property="name">Математика</span>
+                    </a>
+                    <meta property="position" content="0">
+                </li>
+                
+                
+                <li property="itemListElement" typeof="ListItem">
+                    <a href="../" class="menu-item " property="item" typeof="WebPage">
+                        <span property="name">Linux</span>
+                    </a>
+                    <meta property="position" content="1">
+                </li>
+                
+                    
+                    
+
+
+<li property="itemListElement" typeof="ListItem">
+    <a href="#" class="menu-item" data-toggle="modal" data-target="#mkdocs_search_modal" property="item" typeof="SearchAction">
+        <i aria-hidden="true" class="fa fa-search"></i> <span property="name">Search</span>
+    </a>
+    <meta property="position" content="2">
+</li>
+                    
+            </ul>
+            
+        </nav>
+    </div>
+</div>
+        
+    <div class="container">
+        <div class="terminal-mkdocs-main-grid">
+            <main id="terminal-mkdocs-main-content">
+    
+    
+    
+    
+    
+
+<section id="mkdocs-terminal-content">
+    <h1 id="_1">Немного про мануалы</h1>
+<h2 id="_2">Мотивация</h2>
+<p>Какое-то время назад возникла задача: 
+написать мануал к репозиторию с дотфайлами.</p>
+<p>Вообще, сложилось впечатление, что сейчас большая часть документации создается
+либо автоматически, либо техническими писателями. Причем сама документация
+лежит на каком-то сайте, например, <strong>github.io</strong> и нечасто можно получить 
+к ней доступ офлайн. В таких случаях спасают <code>man</code>-ы.</p>
+<h2 id="_3">Способы</h2>
+<p>Вообще, сам мануал -- это документ для <a href="https://en.wikipedia.org/wiki/Groff_(software)">препроцессора</a> <code>groff</code>, который 
+умеет читать команда <code>man</code>, и который можно перевести в другие форматы, 
+при желании.</p>
+<p><a href="https://www.cyberciti.biz/faq/linux-unix-creating-a-manpage/">Пример</a> (<code>test.1</code>):</p>
+<div class="highlight"><pre><span></span><code><span class="p">.</span><span class="c">\&quot; Manpage for nuseradd.</span>
+<span class="p">.</span><span class="c">\&quot; Contact vivek@nixcraft.net.in to correct errors or typos.</span>
+.<span class="k">TH</span> <span class="s">man</span> <span class="m">8</span> <span class="s2">&quot;06 May 2010&quot;</span> <span class="s2">&quot;1.0&quot;</span> <span class="s2">&quot;nuseradd man page&quot;</span>
+.<span class="k">SH</span> <span class="s">NAME</span>
+nuseradd <span class="se">\-</span> create a new LDAP user 
+.<span class="k">SH</span> <span class="s">SYNOPSIS</span>
+nuseradd [USERNAME]
+.<span class="k">SH</span> <span class="s">DESCRIPTION</span>
+nuseradd is high level shell program for adding users to LDAP server.  On Debian, administrators should usually use nuseradd.debian(8) instead.
+.<span class="k">SH</span> <span class="s">OPTIONS</span>
+The nuseradd does not take any options. However, you can supply username.
+.<span class="k">SH</span> <span class="s">SEE</span> <span class="s">ALSO</span>
+useradd(8), passwd(5), nuseradd.debian(8) 
+.<span class="k">SH</span> <span class="s">BUGS</span>
+No known bugs.
+.<span class="k">SH</span> <span class="s">AUTHOR</span>
+Vivek Gite (vivek@nixcraft.net.in)
+</code></pre></div>
+<p>Если выполнить команду <code>man ./test.1</code>, то увидите следующее:
+<img alt="Пример manpage" src="../assets/manpage.jpg" /></p>
+<p>Красиво, но не слишком удобно для создания. Я использовал другой -- через
+конвертацию <code>markdown</code>-файлов.</p>
+<h2 id="_4">Процесс</h2>
+<h3 id="pandoc"><code>pandoc</code></h3>
+<p>Для начала, нужна сама <a href="https://en.wikipedia.org/wiki/Pandoc">программа</a> <code>pandoc</code>. Ставим:</p>
+<div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>pandoc
+</code></pre></div>
+<h3 id="_5">Написание мануала</h3>
+<p>Само написание мануала, думаю, стоит опустить. Синтаксис <code>markdown</code>-а 
+можно посмотреть на википедии. </p>
+<p>Есть только два нюанса при написании:</p>
+<ol>
+<li>В начале нужно указать что-то вроде 
+    <code>% dotfiles(1) | dotfiles usage documentation</code> </li>
+<li>По умолчанию, <code>pandoc</code> распознает каждую строку как отдельный 
+    параграф. Из-за этого между строками в результате получается 
+    разрыв. Чтобы избежать этого, нужно в конце строки добавлять <code>\</code>.</li>
+</ol>
+<p>Сконвертировать файл можно командой:
+<div class="highlight"><pre><span></span><code>pandoc<span class="w"> </span>--standalone<span class="w"> </span>--to<span class="w"> </span>man<span class="w"> </span>manpage.md<span class="w">  </span>--output<span class="o">=</span>dotfiles.1<span class="w"> </span>
+</code></pre></div></p>
+<p>Также, стоит отметить принятое оглавление. Есть три обязательные секции:</p>
+<ul>
+<li><strong>NAME</strong> - название</li>
+<li><strong>SYNOPSIS</strong> - краткое описание (в одну строку) команды или примеры аргументов
+    или ключей.</li>
+<li><strong>DESCRIPTION</strong> - подробное описание команды</li>
+</ul>
+<p>Также, можно указать:</p>
+<ul>
+<li><strong>OPTIONS</strong> - описание опций/аргументов.</li>
+<li><strong>EXAMPLES</strong> - примеры запуска.</li>
+<li><strong>FILES</strong> - описание файлов, если есть файлы конфигурации.</li>
+<li><strong>ENVIRONMENT</strong> - описание переменных окружения.</li>
+<li><strong>BUGS</strong> - Известные баги/ошибки.</li>
+<li><strong>AUTHORS</strong> - авторы.</li>
+<li><strong>SEE ALSO</strong> - референсы к другим мануалам.</li>
+<li><strong>COPYRIGHT | LICENSE</strong> - текст лицензии.</li>
+</ul>
+<h3 id="_6">Как пользоваться</h3>
+<p>Для того, чтобы можно было удобно пользоваться написанным мануалом, 
+нужно:</p>
+<ol>
+<li>Сжать его -- <code>gzip dotfiles.1</code>.</li>
+<li>Поместить архив в любую папку, из которой читает <code>man</code> в директорию <code>man1</code>.</li>
+</ol>
+<p>Для того, чтобы узнать директории, из которых читает <code>man</code>, 
+можно выполнить команду <code>manpath</code></p>
+<p>В моем случае, я поместил все в директорию <code>$HOME/.local/share/man/man1</code>,
+так как <code>$HOME/.local/share</code> это как раз <code>$XDG_DATA_HOME</code> 
+(см. <a href="https://specifications.freedesktop.org/basedir-spec/latest/">спецификацию XDG</a>).</p>
+<p>Результат (<a href="https://github.com/rustbas/dotfilesV2/tree/potatoless-pc">репозиторий</a>):</p>
+<p><img alt="dotfiles manual" src="../assets/result.png" /></p>
+</section>
+
+<section id="mkdocs-terminal-after-content">
+    
+</section>
+<section id="mkdocs-terminal-revision">
+<br>
+<aside>
+    <p>
+        <small>
+            <i>Page last updated 2024-11-01. See revision history on <a href="https://github.com/rustbas/blog/commits/main/docs/linux/manpage.md">GitHub</a>.</i>
+        </small>
+    </p>
+</aside>
+</section>
+            </main>
+        </div>
+        <hr><footer>
+    <div class="terminal-mkdocs-footer-grid">
+        <div id="terminal-mkdocs-footer-copyright-info">
+             Site built with <a href="http://www.mkdocs.org">MkDocs</a> and <a href="https://github.com/ntno/mkdocs-terminal">Terminal for MkDocs</a>.
+        </div>
+    </div>
+</footer>
+    </div>
+
+    
+    <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="alertdialog" aria-modal="true" aria-labelledby="searchModalLabel">
+    <div class="modal-dialog modal-lg" role="search">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="searchModalLabel">Search</h5>
+                <button type="button" class="close btn btn-default btn-ghost" data-dismiss="modal"><span aria-hidden="true">x</span><span class="sr-only">Close</span></button>
+            </div>
+            <div class="modal-body">
+                <p id="searchInputLabel">Type to start searching</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" aria-labelledby="searchInputLabel" placeholder="" id="mkdocs-search-query" title="Please enter search terms here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No document matches found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+    
+    
+</body>
+
+</html>
