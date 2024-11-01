@@ -12,11 +12,11 @@
 
 ## Способы
 
-Вообще, сам мануал -- это документ для препроцессора `groff`, который 
+Вообще, сам мануал -- это документ для [препроцессора](https://en.wikipedia.org/wiki/Groff_(software)) `groff`, который 
 умеет читать команда `man`, и который можно перевести в другие форматы, 
 при желании.
 
-Пример (`test.1`):
+[Пример](https://www.cyberciti.biz/faq/linux-unix-creating-a-manpage/) (`test.1`):
 
 ```groff
 .\" Manpage for nuseradd.
@@ -34,6 +34,8 @@ The nuseradd does not take any options. However, you can supply username.
 useradd(8), passwd(5), nuseradd.debian(8) 
 .SH BUGS
 No known bugs.
+.SH AUTHOR
+Vivek Gite (vivek@nixcraft.net.in)
 ```
 
 Если выполнить команду `man ./test.1`, то увидите следующее:
@@ -46,7 +48,7 @@ No known bugs.
 
 ### `pandoc`
 
-Для начала, нужна сама программа. Ставим:
+Для начала, нужна сама [программа](https://en.wikipedia.org/wiki/Pandoc) `pandoc`. Ставим:
 
 ```shell
 sudo apt install pandoc
@@ -101,8 +103,8 @@ pandoc --standalone --to man manpage.md  --output=dotfiles.1
 
 В моем случае, я поместил все в директорию `$HOME/.local/share/man/man1`,
 так как `$HOME/.local/share` это как раз `$XDG_DATA_HOME` 
-(см. спецификацию XDG).
+(см. [спецификацию XDG](https://specifications.freedesktop.org/basedir-spec/latest/)).
 
-Результат (репозиторий):
+Результат ([репозиторий](https://github.com/rustbas/dotfilesV2/tree/potatoless-pc)):
 
 ![dotfiles manual](assets/result.png)
