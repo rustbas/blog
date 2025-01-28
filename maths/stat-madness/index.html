@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <meta name="generator" content="mkdocs-1.6.1, mkdocs-terminal-4.7.0">
+     
+     
+    
+    <link rel="canonical" href="https://rustbas.github.io/blog/maths/stat-madness/"><link rel="icon" type="image/png" sizes="192x192" href="../../img/android-chrome-192x192.png" />
+<link rel="icon" type="image/png" sizes="512x512" href="../../img/android-chrome-512x512.png" />
+<link rel="apple-touch-icon" sizes="180x180" href="../../img/apple-touch-icon.png" />
+<link rel="shortcut icon" type="image/png" sizes="48x48" href="../../img/favicon.ico" />
+<link rel="icon" type="image/png" sizes="16x16" href="../../img/favicon-16x16.png" />
+<link rel="icon" type="image/png" sizes="32x32" href="../../img/favicon-32x32.png" />
+
+
+    
+ 
+<title>Немного про проверку гипотез - Очередные записки очередного гика</title>
+
+
+<link href="../../css/fontawesome/css/fontawesome.min.css" rel="stylesheet">
+<link href="../../css/fontawesome/css/solid.min.css" rel="stylesheet">
+<link href="../../css/normalize.css" rel="stylesheet">
+<link href="../../css/terminal.css" rel="stylesheet">
+<link href="../../css/theme.css" rel="stylesheet">
+<link href="../../css/theme.tile_grid.css" rel="stylesheet">
+<link href="../../css/theme.footer.css" rel="stylesheet">
+<!-- dark color palette -->
+<link href="../../css/palettes/dark.css" rel="stylesheet">
+
+<!-- page layout -->
+<style>
+/* initially set page layout to a one column grid */
+.terminal-mkdocs-main-grid {
+    display: grid;
+    grid-column-gap: 1.4em;
+    grid-template-columns: auto;
+    grid-template-rows: auto;
+}
+
+</style>
+
+
+
+     
+    
+    
+
+    
+    <!-- search css support -->
+<link href="../../css/search/bootstrap-modal.css" rel="stylesheet">
+<!-- search scripts -->
+<script>
+    var base_url = "../..",
+    shortcuts = "{}";
+</script>
+<script src="../../js/jquery/jquery-1.10.1.min.js" defer></script>
+<script src="../../js/bootstrap/bootstrap.min.js" defer></script>
+<script src="../../js/mkdocs/base.js" defer></script>
+    
+    
+    
+    
+    <script src="../../javascripts/mathjax.js"></script>
+    
+    <script src="https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js"></script>
+    
+    <script src="../../search/main.js"></script>
+    
+
+    
+</head>
+
+<body class="terminal"><div class="container">
+    <div class="terminal-nav">
+        <header class="terminal-logo">
+            <div id="mkdocs-terminal-site-name" class="logo terminal-prompt"><a href="https://rustbas.github.io/blog/" class="no-style">Очередные записки очередного гика</a></div>
+        </header>
+        
+        <nav class="terminal-menu">
+            
+            <ul vocab="https://schema.org/" typeof="BreadcrumbList">
+                
+                
+                <li property="itemListElement" typeof="ListItem">
+                    <a href="../" class="menu-item " property="item" typeof="WebPage">
+                        <span property="name">Математика</span>
+                    </a>
+                    <meta property="position" content="0">
+                </li>
+                
+                
+                <li property="itemListElement" typeof="ListItem">
+                    <a href="../../linux/" class="menu-item " property="item" typeof="WebPage">
+                        <span property="name">Linux</span>
+                    </a>
+                    <meta property="position" content="1">
+                </li>
+                
+                    
+                    
+
+
+<li property="itemListElement" typeof="ListItem">
+    <a href="#" class="menu-item" data-toggle="modal" data-target="#mkdocs_search_modal" property="item" typeof="SearchAction">
+        <i aria-hidden="true" class="fa fa-search"></i> <span property="name">Search</span>
+    </a>
+    <meta property="position" content="2">
+</li>
+                    
+            </ul>
+            
+        </nav>
+    </div>
+</div>
+        
+    <div class="container">
+        <div class="terminal-mkdocs-main-grid">
+            <main id="terminal-mkdocs-main-content">
+    
+    
+    
+    
+    
+
+<section id="mkdocs-terminal-content">
+    <h1 id="_1">Немного про проверку гипотез</h1>
+<h2 id="_2">Введение</h2>
+<p>Любые статистические испытания зиждятся на проверке гипотез, например:</p>
+<ol>
+<li>Проверка действия лекарств.</li>
+<li>Установление зависимости между явлениями.</li>
+<li>A/B тестирование и пр.</li>
+</ol>
+<p>В зависимости от вида данных, целей исследования и других факторов
+можно по-разному формулировать гипотезы и по-разному их проверять.</p>
+<p>Многое зависит от не только знаний и опыта исследователя, но и в целом
+от его подхода. В процессе работы можно все меньше уделять внимание 
+математической составляющей и все больше полагаться на компьютер и его
+вычислительные мощности.</p>
+<p>Здесь я хочу рассказать о стадиях, через которые проходит исследователь,
+в попытках упростить себе жизнь и ускорить процесс проверки гипотез.</p>
+<h2 id="_3">Небольшой ликбез</h2>
+<p>В статистике, если упростить, проверку гипотезы можно описать так: </p>
+<ol>
+<li>По данной выборке считается статистика (т.е. функция от выборки).</li>
+<li>Из распределения статистики находятся две области, где гипотеза отвергается и где нет. Исходя из этого, принимается решение.</li>
+</ol>
+<p><strong>N.B.</strong> Проверяется гипотеза, модель постулируется.</p>
+<h2 id="1">Стадия 1. Строгие доказательства</h2>
+<p>На данной стадии ученый строго выводит распределения статистик, чтобы построить как можно более хорошие критерии. </p>
+<div class="arithmatex">\[\Large
+\sqrt{n}
+\frac
+{\overline{\mathbb{X}} - \mu}
+{S} =
+\sqrt{n}
+\frac
+{\overline{\mathbb{X}} - \mu}
+{\sigma} \cdot
+\frac{1}
+{\frac{S}{\sigma}} =
+\]</div>
+<div class="arithmatex">\[\Large
+= \sqrt{n}
+\frac
+{\overline{\mathbb{X}} - \mu}
+{\sigma} \cdot
+\frac{1}
+{\sqrt{\frac{(n-1)S^2}{\sigma^2}\cdot
+\frac{1}{n-1}
+}}
+\]</div>
+<p>Получим:</p>
+<div class="arithmatex">\[\Large
+\begin{matrix}
+&amp;\sqrt{n}
+\frac{\overline{\mathbb{X}} - \mu}
+{\sigma} &amp;\sim &amp;N(0,1) \\
+&amp;\frac{(n-1)S^2}{\sigma^2} &amp;\sim &amp;\chi^2(n-1)
+\end{matrix}
+\]</div>
+<p>Таким образом, по <a href="https://ru.wikipedia.org/wiki/Распределение_Стьюдента#Определение">определению</a>:</p>
+<div class="arithmatex">\[\Large
+\sqrt{n}
+\frac
+{\overline{\mathbb{X}} - \mu}
+{S} \sim t(n-1).
+\]</div>
+<h2 id="_4">Небольшой пример (критерий Стьюдента)</h2>
+<p><strong>Дано</strong>: выборка Х объема 10</p>
+<div class="arithmatex">\[\Large
+\mathbb{X} = \left( 
+\begin{matrix}
+3.175 \\
+4.042 \\
+2.127 \\
+3.841 \\
+1.699 \\
+2.223 \\
+3.211 \\
+3.33  \\
+2.447 \\
+2.904 
+\end{matrix}
+\right)
+\]</div>
+<p><strong>Модель</strong>: <span class="arithmatex">\(N(\mu, \theta_2)\)</span></p>
+<p><strong>Нулевая гипотеза</strong>: <span class="arithmatex">\(\mu = 3\)</span></p>
+<p><strong>Решение</strong>:</p>
+<p>Статистика критерия:</p>
+<div class="arithmatex">\[\Large
+T(\mathbb{X}) =
+\sqrt{n}
+\frac
+{\overline{\mathbb{X}} - \mu}
+{S} 
+\sim
+t(n-1)
+\]</div>
+<p>Статистика равна:</p>
+<div class="arithmatex">\[\Large
+T(\mathbb{X}) = -1.9066
+\]</div>
+<p>Пусть уровень значимости <span class="arithmatex">\(\alpha = 0.05\)</span>.</p>
+<p>Область, где не отвергается нулевая гипотеза: <span class="arithmatex">\((g_1, g_2) = (-2.262, 2.262)\)</span>, т.е. это область, которую принимает значение статистики при условии верности нулевой гипотезы с вероятностью <span class="arithmatex">\(1 - \alpha = 0.95\)</span>. <span class="arithmatex">\(g_1\)</span> в данном случае это <span class="arithmatex">\(0.025\)</span>-квантиль, а <span class="arithmatex">\(g_2\)</span>, соотвественно, 0.975-квантиль. </p>
+<p><img alt="Доверительный интервал" src="../assets/stat-madness/conf_interval.png" /></p>
+<p>Красным обозначен интервал <span class="arithmatex">\((g_1, g_2)\)</span></p>
+<p>Таким образом, нулевая гипотеза не отвергается, так как значение статистики лежит в данном интервале.</p>
+<blockquote>
+<p><strong>Примечание</strong>: можно было выбрать доверительный интервал иначе, 
+но его стараются  выбрать так, чтобы минимизировать его длину.</p>
+</blockquote>
+<h2 id="2">Стадия 2. Открытие моделирования</h2>
+<p>Иногда (вернее, даже как правило) распределение статистики вывести
+невозможно. В таком случае пользуются моделированием. Идея в том, что
+нам известно распределение выборки в случае нулевой гипотезы. Таким
+образом, можно многократно генерировать выборки и считать статистику,
+таким образом получив ее распределение.</p>
+<p><img alt="Открытие моделирования" src="../assets/stat-madness/modeling.png" /></p>
+<p>В данном случае, моделирование выборки проводилось 
+в условиях <span class="arithmatex">\(X \sim N(\mu, S^2)\)</span>.</p>
+<p>Можно увидеть некоторое расхождение. В этом, кстати, заключается интересный
+момент. Часто критикуются исследования построенные на моделировании, так как
+есть ненулевая (хоть и очень маленькая) вероятность, что выборки
+сгенерировались так, что полученное распределение статистики плохо отражает
+реальность.</p>
+<h2 id="3">Стадия 3. Бутстрэп</h2>
+<p>Бывают случаи, когда распределение выборки неизвестно совсем 
+(или его сложно/нельзя в обычном смысле генерировать,
+<a href="https://stepik.org/lesson/40491/step/1?unit=24794">пример</a>). В таком случае
+постулируют, что данная выборка хорошо отражает генеральную совокупность и в
+качестве функции распределения берут эмпирическую функцию распределения.</p>
+<div class="arithmatex">\[\Large
+F_n(x) = \frac
+{\sum_{i=1}^{n} \mathbb{1}(x)}
+{n}
+\]</div>
+<p>где:</p>
+<div class="arithmatex">\[\Large
+\mathbb{1}(x) =
+\begin{cases}
+1, x &gt; X_i, \\
+0, \text{ иначе.}
+\end{cases}
+\]</div>
+<p>В итоге, получается, что для проверки гипотез не нужно ничего кроме выборки и выдуманной статистики (которая, вообще, может быть любой, от нее зависит только качество получаемого критерия).</p>
+<p>Основная идея заключается в том, чтобы генерировать выборки объемом как и данная выборка из следующего распределения:</p>
+<div class="arithmatex">\[\Large
+\mathcal{F} =
+\begin{pmatrix}
+X_1         &amp;X_2         &amp;\cdots &amp;X_n \\
+\frac{1}{n} &amp;\frac{1}{n} &amp;\cdots &amp;\frac{1}{n} 
+\end{pmatrix}.
+\]</div>
+<p><img alt="Результат на выборке объема 10" src="../assets/stat-madness/bootstrap.png" /></p>
+<p>Таким образом, из расхождения графиков можно сделать следующие выводы:</p>
+<ul>
+<li>применение бутстрэпа требует большой объема первоначальной выборки,</li>
+<li>наблюдения в выборке должны быть независимыми.</li>
+</ul>
+<p>Несмотря на это, он часто применяется невпопад, так как не требует особых затрат на реализацию.</p>
+</section>
+
+<section id="mkdocs-terminal-after-content">
+    
+</section>
+<section id="mkdocs-terminal-revision">
+<br>
+<aside>
+    <p>
+        <small>
+            <i>Page last updated 2025-01-28. See revision history on <a href="https://github.com/rustbas/blog/commits/main/docs/maths/stat-madness.md">GitHub</a>.</i>
+        </small>
+    </p>
+</aside>
+</section>
+            </main>
+        </div>
+        <hr><footer>
+    <div class="terminal-mkdocs-footer-grid">
+        <div id="terminal-mkdocs-footer-copyright-info">
+             Site built with <a href="http://www.mkdocs.org">MkDocs</a> and <a href="https://github.com/ntno/mkdocs-terminal">Terminal for MkDocs</a>.
+        </div>
+    </div>
+</footer>
+    </div>
+
+    
+    <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="alertdialog" aria-modal="true" aria-labelledby="searchModalLabel">
+    <div class="modal-dialog modal-lg" role="search">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="searchModalLabel">Search</h5>
+                <button type="button" class="close btn btn-default btn-ghost" data-dismiss="modal"><span aria-hidden="true">x</span><span class="sr-only">Close</span></button>
+            </div>
+            <div class="modal-body">
+                <p id="searchInputLabel">Type to start searching</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" aria-labelledby="searchInputLabel" placeholder="" id="mkdocs-search-query" title="Please enter search terms here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No document matches found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+    
+    
+</body>
+
+</html>
