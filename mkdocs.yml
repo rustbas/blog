@@ -13,6 +13,7 @@ nav:
   # - "Обо мне": 'index.md'
   - "Математика": 'maths/index.md'
   - "Linux": 'linux/index.md'
+  - "Общее": 'common/index.md'
 
 plugins:
   - search:
