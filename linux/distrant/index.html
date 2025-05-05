@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <meta name="generator" content="mkdocs-1.6.1, mkdocs-terminal-4.7.0">
+     
+     
+    
+    <link rel="canonical" href="https://rustbas.github.io/blog/linux/distrant/"><link rel="icon" type="image/png" sizes="192x192" href="../../img/android-chrome-192x192.png" />
+<link rel="icon" type="image/png" sizes="512x512" href="../../img/android-chrome-512x512.png" />
+<link rel="apple-touch-icon" sizes="180x180" href="../../img/apple-touch-icon.png" />
+<link rel="shortcut icon" type="image/png" sizes="48x48" href="../../img/favicon.ico" />
+<link rel="icon" type="image/png" sizes="16x16" href="../../img/favicon-16x16.png" />
+<link rel="icon" type="image/png" sizes="32x32" href="../../img/favicon-32x32.png" />
+
+
+    
+ 
+<title>Немного про распределенную компиляцию - Очередные записки очередного гика</title>
+
+
+<link href="../../css/fontawesome/css/fontawesome.min.css" rel="stylesheet">
+<link href="../../css/fontawesome/css/solid.min.css" rel="stylesheet">
+<link href="../../css/normalize.css" rel="stylesheet">
+<link href="../../css/terminal.css" rel="stylesheet">
+<link href="../../css/theme.css" rel="stylesheet">
+<link href="../../css/theme.tile_grid.css" rel="stylesheet">
+<link href="../../css/theme.footer.css" rel="stylesheet">
+<!-- dark color palette -->
+<link href="../../css/palettes/dark.css" rel="stylesheet">
+
+<!-- page layout -->
+<style>
+/* initially set page layout to a one column grid */
+.terminal-mkdocs-main-grid {
+    display: grid;
+    grid-column-gap: 1.4em;
+    grid-template-columns: auto;
+    grid-template-rows: auto;
+}
+
+</style>
+
+
+
+     
+    
+    
+
+    
+    <!-- search css support -->
+<link href="../../css/search/bootstrap-modal.css" rel="stylesheet">
+<!-- search scripts -->
+<script>
+    var base_url = "../..",
+    shortcuts = "{}";
+</script>
+<script src="../../js/jquery/jquery-1.10.1.min.js" defer></script>
+<script src="../../js/bootstrap/bootstrap.min.js" defer></script>
+<script src="../../js/mkdocs/base.js" defer></script>
+    
+    
+    
+    
+    <script src="../../javascripts/mathjax.js"></script>
+    
+    <script src="https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js"></script>
+    
+    <script src="../../search/main.js"></script>
+    
+
+    
+</head>
+
+<body class="terminal"><div class="container">
+    <div class="terminal-nav">
+        <header class="terminal-logo">
+            <div id="mkdocs-terminal-site-name" class="logo terminal-prompt"><a href="https://rustbas.github.io/blog/" class="no-style">Очередные записки очередного гика</a></div>
+        </header>
+        
+        <nav class="terminal-menu">
+            
+            <ul vocab="https://schema.org/" typeof="BreadcrumbList">
+                
+                
+                <li property="itemListElement" typeof="ListItem">
+                    <a href="../../maths/" class="menu-item " property="item" typeof="WebPage">
+                        <span property="name">Математика</span>
+                    </a>
+                    <meta property="position" content="0">
+                </li>
+                
+                
+                <li property="itemListElement" typeof="ListItem">
+                    <a href="../" class="menu-item " property="item" typeof="WebPage">
+                        <span property="name">Linux</span>
+                    </a>
+                    <meta property="position" content="1">
+                </li>
+                
+                
+                <li property="itemListElement" typeof="ListItem">
+                    <a href="../../common/" class="menu-item " property="item" typeof="WebPage">
+                        <span property="name">Общее</span>
+                    </a>
+                    <meta property="position" content="2">
+                </li>
+                
+                    
+                    
+
+
+<li property="itemListElement" typeof="ListItem">
+    <a href="#" class="menu-item" data-toggle="modal" data-target="#mkdocs_search_modal" property="item" typeof="SearchAction">
+        <i aria-hidden="true" class="fa fa-search"></i> <span property="name">Search</span>
+    </a>
+    <meta property="position" content="3">
+</li>
+                    
+            </ul>
+            
+        </nav>
+    </div>
+</div>
+        
+    <div class="container">
+        <div class="terminal-mkdocs-main-grid">
+            <main id="terminal-mkdocs-main-content">
+    
+    
+    
+    
+    
+
+<section id="mkdocs-terminal-content">
+    <h1 id="_1">Немного про распределенную компиляцию</h1>
+<h2 id="_2">Мотивация / Введение</h2>
+<p>Мне, как любителю Linux, всегда было интересно изучить Gentoo 
+Linux. На это есть множество причин, сейчас не о них. 
+Суть в том, этап установки системы на виртуальную машину пройден и 
+есть желание попробовать установить на второстепенный маломощный нетбук. 
+Возникает проблема: Gentoo Linux -- это т.н. "source-based" дистрибутив, 
+т.е. она распространяется в виде исходного кода. В свою очередь, компиляция
+системы на нетбуке занимает чуть больше суток (возможно, это можно поправить
+более тщательной конфигурацией перед сборкой, но, на мой взгляд, это 
+слишком "хардкорный" путь для знакомства с системой). Конечно, компиляция 
+ядра, строго говоря, необязательна, так как можно поставить предварительно 
+скомпилированную версию. Но так неинтересно.</p>
+<p>Таким образом, возникает вопрос -- можно ли ускорить компиляцию
+на слабых ПК? Тут на помощь приходит <code>distcc</code>, 
+своего рода фронтенд для компиляторов C/C++.</p>
+<p>Сегодня мы хотим посмотреть на возможность компиляции ядра Linux (минимальной
+конфигурации <code>tinyconfig</code>) на двух виртуальных машинах с разными 
+характеристиками. Но для этого нужно рассказать про утилиту <code>vagrant</code>,
+конфигуратор виртуальных машин.</p>
+<h2 id="vagrant">Vagrant</h2>
+<p>Vagrant<sup id="fnref:1"><a class="footnote-ref" href="#fn:1">1</a></sup> (с англ. — «бродяга») — свободное и открытое программное
+обеспечение для создания и конфигурирования виртуальной среды разработки.
+Является обёрткой для программного обеспечения виртуализации, например
+VirtualBox, и средств управления конфигурациями, таких как Chef, Salt и 
+Puppet.</p>
+<p>Данная утилита полезна тем, что позволяет, используя шаблоны виртуальных
+машин, запускать их. Для описания стэка требуется один т.н. Vagrantfile. 
+Она может работать совместно с qemu, VirtualBox, VMWare и пр. </p>
+<p>О vagrant стоит знать потому, что в какой момент, эксперементируя с 
+виртуальными машинами, надоест каждый раз их устанавливать в условном VMWare.</p>
+<h2 id="distcc">Distcc</h2>
+<p>distcc<sup id="fnref:2"><a class="footnote-ref" href="#fn:2">2</a></sup> (от англ. distributed C/C++/ObjC compiler) — инструмент, 
+позволяющий компилировать исходные коды при помощи 
+компиляторов C/C++/ObjC на удалённых машинах, что ускоряет процесс компиляции.</p>
+<p>Важно понимать, что это своего рода фронтенд для компиляторов, 
+сам по себе он не компилирует код.</p>
+<h2 id="_3">Компиляция</h2>
+<h3 id="_4">Демонстрация стенда</h3>
+<p>Для начала построчно рассмотрим Vagrantfile.
+При его написании используется язык Ruby.</p>
+<p>Описание "шаблона" для виртуальных машин. В данном случае это Debian 
+12 Bookworm.</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Default box</span>
+<span class="n">box_name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;debian.jessie64.libvirt.box&quot;</span>
+</code></pre></div>
+<p>Файл можно скачать с сайта HashiCorp. </p>
+<p>Описание виртуальной машины, на которой будет основная компиляция:</p>
+<div class="highlight"><pre><span></span><code># Master
+master_node = {
+  :hostname =&gt; &quot;master&quot;, :ip =&gt; &quot;10.200.1.2&quot;, :memory =&gt; 1024, :cpu =&gt; 1
+}
+</code></pre></div>
+<p>Характеристики:</p>
+<ul>
+<li>IP: 10.200.1.2,</li>
+<li>RAM: 1Gb,</li>
+<li>1 поток.</li>
+</ul>
+<p>Они похожи на характеристики моего нетбука, но занижены в целях демонстрации.</p>
+<p>Описание второстепенной виртуальной машины:</p>
+<div class="highlight"><pre><span></span><code># List of slaves
+slaves = [
+  { :memory =&gt; 4096,  :cpu =&gt; 4 },
+]
+</code></pre></div>
+<p>Характеристики:</p>
+<ul>
+<li>RAM: 4Gb,</li>
+<li>4 потока.</li>
+</ul>
+<p>Скрипт для автоматической установки зависимостей:</p>
+<div class="highlight"><pre><span></span><code>$distcc_install = &lt;&lt;-SCRIPT
+apt update
+apt install -y make distcc gcc g++ tmux libz-dev git fakeroot build-essential ncurses-dev xz-utils libssl-dev bc flex libelf-dev bison time neofetch
+SCRIPT
+</code></pre></div>
+<p>Старт конфигурации виртуальных машин:</p>
+<div class="highlight"><pre><span></span><code>Vagrant.configure(&quot;2&quot;) do |config|
+</code></pre></div>
+<p>Конфигурация основной машины:</p>
+<div class="highlight"><pre><span></span><code>  # Master node&#39;s config
+  config.vm.box_check_update = false
+  config.vm.define master_node[:hostname] do |nodeconfig|
+    nodeconfig.vm.box = box_name
+    nodeconfig.vm.hostname = master_node[:hostname]
+    nodeconfig.vm.network(:private_network, ip: master_node[:ip])
+    nodeconfig.vm.provision &quot;shell&quot;, inline: $distcc_install
+    nodeconfig.vm.provision &quot;file&quot;, source: &quot;./linux-6.13.tar.gz&quot;, destination: &quot;~/linux-6.13.tar.gz&quot;
+    nodeconfig.vm.provider :libvirt do |vb|
+      vb.memory = master_node[:memory]
+      vb.cpus = master_node[:cpu]
+    end
+  end
+</code></pre></div>
+<p>В нем:</p>
+<ol>
+<li>Отключаются обновления,</li>
+<li>Задаются характеристики ВМ,</li>
+<li>Запускается скрипт установки зависимостей,</li>
+<li>Копируется 
+   <a href="https://cdn.kernel.org/pub/linux/kernel/v6.x/linux-6.13.tar.gz">архив</a>
+   с исходным кодом ядра (должен лежать в директории с Vagrantfile).</li>
+</ol>
+<p>Конфигурация второстепенных машин:</p>
+<div class="highlight"><pre><span></span><code>  # Slaves configs
+  slaves.each_with_index do |slave, i|
+    config.vm.box_check_update = false
+    config.vm.define &quot;slave-#{ i+1 }&quot; do |nodeconfig|
+      # Default box-name (cause I have only it)
+      nodeconfig.vm.box = box_name
+
+      # Hostname: slave-N
+      nodeconfig.vm.hostname = &quot;slave-#{ i+1 }&quot;
+
+      # IP-address: 10.200.1.{N+2}
+      nodeconfig.vm.network :private_network, ip: &quot;10.200.1.#{ i+3 }&quot;
+      nodeconfig.vm.provision &quot;shell&quot;, inline: $distcc_install
+      nodeconfig.vm.provider :libvirt do |vb|
+        vb.memory = slave[:memory]
+        vb.cpus = slave[:cpu]
+      end
+    end
+  end
+end
+</code></pre></div>
+<p>Стоит обратить внимание, что IP задается автоматически, начиная от 
+<code>10.200.1.3</code> и далее. Сделано это на случай нескольких ВМ.</p>
+<h3 id="gcc">Компиляция на одной машине (gcc)</h3>
+<p>Для начала запустим стенд командой <code>vagrant up</code>. На моем ноутбуке это занимает 
+примерно 127 секунд.</p>
+<p>Далее необходимо подключиться к главной машине и распаковать исходники ядра<sup id="fnref:3"><a class="footnote-ref" href="#fn:3">3</a></sup>:</p>
+<div class="highlight"><pre><span></span><code>vagrant ssh master
+tar xvf linux-6.13.tar.gz
+cd linux-6.13
+</code></pre></div>
+<p>Создаем файл минимальной конфигурации 
+(с остальными вариантам можно ознакомиться командой <code>make help | less</code>):</p>
+<div class="highlight"><pre><span></span><code>make tinyconfig
+</code></pre></div>
+<blockquote>
+<p><strong>Важно</strong>: для чистоты эксперимента все замеры делаются после команды <code>make 
+    distclean</code> (см. <code>make help</code>).</p>
+</blockquote>
+<p>Запускаем компиляцию с замером времени:</p>
+<div class="highlight"><pre><span></span><code>time -p make CC=gcc
+</code></pre></div>
+<h3 id="distcc_1">Компиляция на одной машине (distcc)</h3>
+<p>По смыслу, все тоже самое, только нужно указать distcc, на каких хостах 
+можно компилировать:</p>
+<div class="highlight"><pre><span></span><code><span class="nb">export</span><span class="w"> </span><span class="nv">DISTCC_HOSTS</span><span class="o">=</span><span class="s2">&quot;localhost&quot;</span>
+</code></pre></div>
+<p>Запускаем компиляцию с замером времени:</p>
+<div class="highlight"><pre><span></span><code>time -p make CC=&quot;distcc gcc&quot;
+</code></pre></div>
+<h3 id="distcc_2">Компиляция на двух машинах (distcc)</h3>
+<p>Для запуска распределенной компиляции, нужно сначала запустить демон на
+второй виртуальной машине. Для этого подключаемся к ней и запускаем его:</p>
+<div class="highlight"><pre><span></span><code>vagrant ssh slave-1
+distccd --daemon --allow-private
+</code></pre></div>
+<p>Параметр <code>--allow-private</code> разрешает стучаться только с приватных сетей.</p>
+<p>Для проверки можно:</p>
+<ol>
+<li>На второй машине проверить открытые порты: <code>ss -ntlp | grep 3632</code>,</li>
+<li>С основной машины постучаться в этот порт: <code>telnet 10.200.1.3 3632</code> 
+   (выход на <code>C-] C-d</code>).</li>
+</ol>
+<p>Теперь нужно добавить хост, чтобы на нем можно было удаленно компилировать. 
+Для этого на основной машине:</p>
+<div class="highlight"><pre><span></span><code>export DISTCC_HOSTS=&quot;localhost 10.200.1.3&quot;
+</code></pre></div>
+<p>Для проверки можно посмотреть список хостов для компиляции: <code>distcc --show-hosts</code>.</p>
+<p>Запустим компиляцию на 5 потоках с замером времени:</p>
+<div class="highlight"><pre><span></span><code><span class="nb">time</span><span class="w"> </span>-p<span class="w"> </span>make<span class="w"> </span>-j5<span class="w"> </span><span class="nv">CC</span><span class="o">=</span><span class="s2">&quot;distcc gcc&quot;</span>
+</code></pre></div>
+<p>Мониторить компиляцию можно с помощью команды (на основной машине):</p>
+<div class="highlight"><pre><span></span><code>watch -n 1 distccmon-text
+</code></pre></div>
+<p><img alt="distccmon-text" src="../assets/distccmon-text.png" /></p>
+<h3 id="_5">Таблица сравнения</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: center;">Итерация</th>
+<th style="text-align: center;">Одна машина (gcc), с</th>
+<th style="text-align: center;">Одна машина (distcc), с</th>
+<th style="text-align: center;">Две машины (distcc), с</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">176</td>
+<td style="text-align: center;">176</td>
+<td style="text-align: center;">111</td>
+</tr>
+<tr>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">186</td>
+<td style="text-align: center;">162</td>
+<td style="text-align: center;">109</td>
+</tr>
+<tr>
+<td style="text-align: center;">3</td>
+<td style="text-align: center;">187</td>
+<td style="text-align: center;">174</td>
+<td style="text-align: center;">127</td>
+</tr>
+<tr>
+<td style="text-align: center;">Среднее</td>
+<td style="text-align: center;">183</td>
+<td style="text-align: center;">170</td>
+<td style="text-align: center;">115</td>
+</tr>
+</tbody>
+</table>
+<h2 id="_6">Итог</h2>
+<p>Можно увидеть, что такая параллелизация дает прирост 37%. 
+Сложно сказать, можно ли разогнать сильнее, так как многое зависит от 
+правил компиляции (например, их нельзя распараллелить больше чем на 5 потоков).</p>
+<p>Очевидно, что распределенная компиляция при прочих равных будет проигрывать 
+параллельной, так как общение между потоками по определению быстрее. 
+Но для слабых машин это отлично подходит. К сожалению, у данного метода есть
+существенные ограничения:</p>
+<ol>
+<li>Версии gcc и distcc должны совпадать (хотя, пишут, что достаточно 
+    совпадения только мажорных версий).</li>
+<li>В некоторых случаях нет возможности общения по TCP и требуется подключение по 
+    SSH. Например, когда есть ограничения безопасности или при сложной организации 
+    сети. Определенно, такое подключение будет медленнее.</li>
+</ol>
+<p>Все материалы стенда можно найти в 
+<a href="https://github.com/rustbas/disgrant/">репозитории</a> на Github.</p>
+<div class="footnote">
+<hr />
+<ol>
+<li id="fn:1">
+<p>Википедия <a href="https://ru.wikipedia.org/wiki/Vagrant">Vagrant</a>.&#160;<a class="footnote-backref" href="#fnref:1" title="Jump back to footnote 1 in the text">&#8617;</a></p>
+</li>
+<li id="fn:2">
+<p>Википедия <a href="https://ru.wikipedia.org/wiki/Distcc">distcc</a>.&#160;<a class="footnote-backref" href="#fnref:2" title="Jump back to footnote 2 in the text">&#8617;</a></p>
+</li>
+<li id="fn:3">
+<p>Исходный код ядра можно найти <a href="https://cdn.kernel.org/pub/linux/kernel/v6.x/linux-6.13.tar.gz">здесь</a>.&#160;<a class="footnote-backref" href="#fnref:3" title="Jump back to footnote 3 in the text">&#8617;</a></p>
+</li>
+</ol>
+</div>
+</section>
+
+<section id="mkdocs-terminal-after-content">
+    
+</section>
+<section id="mkdocs-terminal-revision">
+<br>
+<aside>
+    <p>
+        <small>
+            <i>Page last updated 2025-05-05. See revision history on <a href="https://github.com/rustbas/blog/commits/main/docs/linux/distrant.md">GitHub</a>.</i>
+        </small>
+    </p>
+</aside>
+</section>
+            </main>
+        </div>
+        <hr><footer>
+    <div class="terminal-mkdocs-footer-grid">
+        <div id="terminal-mkdocs-footer-copyright-info">
+             Site built with <a href="http://www.mkdocs.org">MkDocs</a> and <a href="https://github.com/ntno/mkdocs-terminal">Terminal for MkDocs</a>.
+        </div>
+    </div>
+</footer>
+    </div>
+
+    
+    <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="alertdialog" aria-modal="true" aria-labelledby="searchModalLabel">
+    <div class="modal-dialog modal-lg" role="search">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="searchModalLabel">Search</h5>
+                <button type="button" class="close btn btn-default btn-ghost" data-dismiss="modal"><span aria-hidden="true">x</span><span class="sr-only">Close</span></button>
+            </div>
+            <div class="modal-body">
+                <p id="searchInputLabel">Type to start searching</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" aria-labelledby="searchInputLabel" placeholder="" id="mkdocs-search-query" title="Please enter search terms here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No document matches found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+    
+    
+</body>
+
+</html>
