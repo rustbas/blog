@@ -3,12 +3,33 @@ site_url: https://rustbas.github.io/blog
 repo_url: https://github.com/rustbas/blog
 edit_uri: edit/main/docs/
 theme:
-    name: terminal
-    palette: dark
+    name: material
+    palette:
+    - scheme: default
+      toggle:
+        icon: material/toggle-switch
+        name: Switch to dark mode
+      primary: green
+
+    - scheme: slate
+      toggle:
+        icon: material/toggle-switch-off-outline
+        name: Switch to light mode
+      primary: teal
+      
     features:
-      - revision.date
-      - revision.history
-      - navigation.side.hide
+      - navigation.instant # TODO: check troubles with TeX loading
+      - navigation.instant.progress
+      - header.autohide
+    icon:
+      repo: fontawesome/brands/git
+    font:
+      # text: Roboto
+      code: JetBrains Mono
+
+    #   - revision.date
+    #   - revision.history
+    #   - navigation.side.hide
 nav:
   # - "Обо мне": 'index.md'
   - "Математика": 'maths/index.md'
@@ -20,7 +41,7 @@ plugins:
       lang: ["ru", "en"]
       indexing: 'full'
   - git-revision-date
-
+  
 markdown_extensions:
   - pymdownx.arithmatex:
       generic: true
