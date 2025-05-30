@@ -66,7 +66,7 @@ box_name = "debian.jessie64.libvirt.box"
 
 Описание виртуальной машины, на которой будет основная компиляция:
 
-```
+```ruby
 # Master
 master_node = {
   :hostname => "master", :ip => "10.200.1.2", :memory => 1024, :cpu => 1
@@ -83,7 +83,7 @@ master_node = {
 
 Описание второстепенной виртуальной машины:
 
-```
+```ruby
 # List of slaves
 slaves = [
   { :memory => 4096,  :cpu => 4 },
@@ -97,7 +97,7 @@ slaves = [
 
 Скрипт для автоматической установки зависимостей:
 
-```
+```ruby
 $distcc_install = <<-SCRIPT
 apt update
 apt install -y make distcc gcc g++ tmux libz-dev git fakeroot build-essential ncurses-dev xz-utils libssl-dev bc flex libelf-dev bison time neofetch
@@ -106,13 +106,13 @@ SCRIPT
 
 Старт конфигурации виртуальных машин:
 
-```
+```ruby
 Vagrant.configure("2") do |config|
 ```
 
 Конфигурация основной машины:
 
-```
+```ruby
   # Master node's config
   config.vm.box_check_update = false
   config.vm.define master_node[:hostname] do |nodeconfig|
@@ -139,7 +139,7 @@ Vagrant.configure("2") do |config|
 
 Конфигурация второстепенных машин:
 
-```
+```ruby
   # Slaves configs
   slaves.each_with_index do |slave, i|
     config.vm.box_check_update = false
@@ -172,7 +172,7 @@ end
 
 Далее необходимо подключиться к главной машине и распаковать исходники ядра[^3]:
 
-```
+```shell
 vagrant ssh master
 tar xvf linux-6.13.tar.gz
 cd linux-6.13
@@ -181,7 +181,7 @@ cd linux-6.13
 Создаем файл минимальной конфигурации 
 (с остальными вариантам можно ознакомиться командой `make help | less`):
 
-```
+```shell
 make tinyconfig
 ```
 
@@ -190,7 +190,7 @@ make tinyconfig
 
 Запускаем компиляцию с замером времени:
 
-```
+```shell
 time -p make CC=gcc
 ```
 
@@ -199,13 +199,13 @@ time -p make CC=gcc
 По смыслу, все тоже самое, только нужно указать distcc, на каких хостах 
 можно компилировать:
 
-```sh
+```shell
 export DISTCC_HOSTS="localhost"
 ```
 
 Запускаем компиляцию с замером времени:
 
-```
+```shell
 time -p make CC="distcc gcc"
 ```
 
@@ -214,7 +214,7 @@ time -p make CC="distcc gcc"
 Для запуска распределенной компиляции, нужно сначала запустить демон на
 второй виртуальной машине. Для этого подключаемся к ней и запускаем его:
 
-```
+```shell
 vagrant ssh slave-1
 distccd --daemon --allow-private
 ```
@@ -230,7 +230,7 @@ distccd --daemon --allow-private
 Теперь нужно добавить хост, чтобы на нем можно было удаленно компилировать. 
 Для этого на основной машине:
 
-```
+```shell
 export DISTCC_HOSTS="localhost 10.200.1.3"
 ```
 
@@ -238,13 +238,13 @@ export DISTCC_HOSTS="localhost 10.200.1.3"
 
 Запустим компиляцию на 5 потоках с замером времени:
 
-```sh
+```shell
 time -p make -j5 CC="distcc gcc"
 ```
 
 Мониторить компиляцию можно с помощью команды (на основной машине):
 
-```
+```shell
 watch -n 1 distccmon-text
 ```
 
