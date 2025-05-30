@@ -159,8 +159,8 @@ optimizer = t.optim.SGD(model.parameters(), lr=1e-3)
 
 ## Источники
 
-1. [Википедия про ELF-формат](https://ru.wikipedia.org/wiki/Executable_and_Linkable_Format)
-2. [Репозиторий проекта](https://github.com/rustbas/filetype-prediction)
-3. [Основание идеи заметки](https://youtu.be/AUWxl0WdiNI?si=mklboGVUC-mZ-d1M)
-    1. [Пояснение про сигнатуру](https://youtu.be/4bM3Gut1hIk?si=zSGWLHKTKW7bStPb)
-4. [Модули для Python](https://youtu.be/45TOazYbedI?si=jykTbnbjcyzTsN0r)
+1. [Википедия про ELF-формат](https://ru.wikipedia.org/wiki/Executable_and_Linkable_Format);
+2. [Репозиторий проекта](https://github.com/rustbas/filetype-prediction);
+3. [Основание идеи заметки](https://youtu.be/AUWxl0WdiNI?si=mklboGVUC-mZ-d1M);
+    1. [Пояснение про сигнатуру](https://youtu.be/4bM3Gut1hIk?si=zSGWLHKTKW7bStPb);
+4. [Модули для Python](https://youtu.be/45TOazYbedI?si=jykTbnbjcyzTsN0r).
