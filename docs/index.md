@@ -18,7 +18,7 @@
   процессами, **nginx** (веб-сервер), сетевые протоколы, ведение документации
   (**mkdocs**);
 - **DevOps**: основы **docker** и **ansible**, docker-compose (в т.ч.
-  Portainer), **CI/CD** (GitHub Actions, GitLab CI);
+  Portainer), основы **CI/CD** (GitHub Actions, GitLab CI, Jenkins);
 - **Программирование**: **python** (в том числе: numpy, scipy, pandas,
   matplotlib), **bash** и zsh, **C/C++**;
 - **Математика**: основы теории случайных процессов, машинное обучение,
