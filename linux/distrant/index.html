@@ -1,0 +1,785 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://rustbas.github.io/blog/linux/distrant/">
+      
+      
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.14">
+    
+    
+      
+        <title>Немного про распределенную компиляцию - Очередные записки очередного гика</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.342714a4.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="green" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#_1" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Очередные записки очередного гика" class="md-header__button md-logo" aria-label="Очередные записки очередного гика" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Очередные записки очередного гика
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Немного про распределенную компиляцию
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="green" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 7H7a5 5 0 0 0-5 5 5 5 0 0 0 5 5h10a5 5 0 0 0 5-5 5 5 0 0 0-5-5m0 8a3 3 0 0 1-3-3 3 3 0 0 1 3-3 3 3 0 0 1 3 3 3 3 0 0 1-3 3"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="teal" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 6H7c-3.31 0-6 2.69-6 6s2.69 6 6 6h10c3.31 0 6-2.69 6-6s-2.69-6-6-6m0 10H7c-2.21 0-4-1.79-4-4s1.79-4 4-4h10c2.21 0 4 1.79 4 4s-1.79 4-4 4M7 9c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/rustbas/blog" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M216.29 158.39H137C97 147.9 6.51 150.63 6.51 233.18c0 30.09 15 51.23 35 61-25.1 23-37 33.85-37 49.21 0 11 4.47 21.14 17.89 26.81C8.13 383.61 0 393.35 0 411.65c0 32.11 28.05 50.82 101.63 50.82 70.75 0 111.79-26.42 111.79-73.18 0-58.66-45.16-56.5-151.63-63l13.43-21.55c27.27 7.58 118.7 10 118.7-67.89 0-18.7-7.73-31.71-15-41.07l37.41-2.84zm-63.42 241.9c0 32.06-104.89 32.1-104.89 2.43 0-8.14 5.27-15 10.57-21.54 77.71 5.3 94.32 3.37 94.32 19.11m-50.81-134.58c-52.8 0-50.46-71.16 1.2-71.16 49.54 0 50.82 71.16-1.2 71.16m133.3 100.51v-32.1c26.75-3.66 27.24-2 27.24-11V203.61c0-8.5-2.05-7.38-27.24-16.26l4.47-32.92H324v168.71c0 6.51.4 7.32 6.51 8.14l20.73 2.84v32.1zm52.45-244.31c-23.17 0-36.59-13.43-36.59-36.61s13.42-35.77 36.59-35.77c23.58 0 37 12.62 37 35.77s-13.42 36.61-37 36.61M512 350.46c-17.49 8.53-43.1 16.26-66.28 16.26-48.38 0-66.67-19.5-66.67-65.46V194.75c0-5.42 1.05-4.06-31.71-4.06V154.5c35.78-4.07 50-22 54.47-66.27h38.63c0 65.83-1.34 61.81 3.26 61.81H501v40.65h-60.56v97.15c0 6.92-4.92 51.41 60.57 26.84z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Очередные записки очередного гика" class="md-nav__button md-logo" aria-label="Очередные записки очередного гика" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Очередные записки очередного гика
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/rustbas/blog" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M216.29 158.39H137C97 147.9 6.51 150.63 6.51 233.18c0 30.09 15 51.23 35 61-25.1 23-37 33.85-37 49.21 0 11 4.47 21.14 17.89 26.81C8.13 383.61 0 393.35 0 411.65c0 32.11 28.05 50.82 101.63 50.82 70.75 0 111.79-26.42 111.79-73.18 0-58.66-45.16-56.5-151.63-63l13.43-21.55c27.27 7.58 118.7 10 118.7-67.89 0-18.7-7.73-31.71-15-41.07l37.41-2.84zm-63.42 241.9c0 32.06-104.89 32.1-104.89 2.43 0-8.14 5.27-15 10.57-21.54 77.71 5.3 94.32 3.37 94.32 19.11m-50.81-134.58c-52.8 0-50.46-71.16 1.2-71.16 49.54 0 50.82 71.16-1.2 71.16m133.3 100.51v-32.1c26.75-3.66 27.24-2 27.24-11V203.61c0-8.5-2.05-7.38-27.24-16.26l4.47-32.92H324v168.71c0 6.51.4 7.32 6.51 8.14l20.73 2.84v32.1zm52.45-244.31c-23.17 0-36.59-13.43-36.59-36.61s13.42-35.77 36.59-35.77c23.58 0 37 12.62 37 35.77s-13.42 36.61-37 36.61M512 350.46c-17.49 8.53-43.1 16.26-66.28 16.26-48.38 0-66.67-19.5-66.67-65.46V194.75c0-5.42 1.05-4.06-31.71-4.06V154.5c35.78-4.07 50-22 54.47-66.27h38.63c0 65.83-1.34 61.81 3.26 61.81H501v40.65h-60.56v97.15c0 6.92-4.92 51.41 60.57 26.84z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../maths/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Математика
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Linux
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../common/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Общее
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      Мотивация / Введение
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#vagrant" class="md-nav__link">
+    <span class="md-ellipsis">
+      Vagrant
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#distcc" class="md-nav__link">
+    <span class="md-ellipsis">
+      Distcc
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      Компиляция
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Компиляция">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      Демонстрация стенда
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#gcc" class="md-nav__link">
+    <span class="md-ellipsis">
+      Компиляция на одной машине (gcc)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#distcc_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Компиляция на одной машине (distcc)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#distcc_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      Компиляция на двух машинах (distcc)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      Таблица сравнения
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      Итог
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="_1">Немного про распределенную компиляцию</h1>
+<h2 id="_2">Мотивация / Введение</h2>
+<p>Мне, как любителю Linux, всегда было интересно изучить Gentoo 
+Linux. На это есть множество причин, сейчас не о них. 
+Суть в том, этап установки системы на виртуальную машину пройден и 
+есть желание попробовать установить на второстепенный маломощный нетбук. 
+Возникает проблема: Gentoo Linux -- это т.н. "source-based" дистрибутив, 
+т.е. она распространяется в виде исходного кода. В свою очередь, компиляция
+системы на нетбуке занимает чуть больше суток (возможно, это можно поправить
+более тщательной конфигурацией перед сборкой, но, на мой взгляд, это 
+слишком "хардкорный" путь для знакомства с системой). Конечно, компиляция 
+ядра, строго говоря, необязательна, так как можно поставить предварительно 
+скомпилированную версию. Но так неинтересно.</p>
+<p>Таким образом, возникает вопрос -- можно ли ускорить компиляцию
+на слабых ПК? Тут на помощь приходит <code>distcc</code>, 
+своего рода фронтенд для компиляторов C/C++.</p>
+<p>Сегодня мы хотим посмотреть на возможность компиляции ядра Linux (минимальной
+конфигурации <code>tinyconfig</code>) на двух виртуальных машинах с разными 
+характеристиками. Но для этого нужно рассказать про утилиту <code>vagrant</code>,
+конфигуратор виртуальных машин.</p>
+<h2 id="vagrant">Vagrant</h2>
+<p>Vagrant<sup id="fnref:1"><a class="footnote-ref" href="#fn:1">1</a></sup> (с англ. — «бродяга») — свободное и открытое программное
+обеспечение для создания и конфигурирования виртуальной среды разработки.
+Является обёрткой для программного обеспечения виртуализации, например
+VirtualBox, и средств управления конфигурациями, таких как Chef, Salt и 
+Puppet.</p>
+<p>Данная утилита полезна тем, что позволяет, используя шаблоны виртуальных
+машин, запускать их. Для описания стэка требуется один т.н. Vagrantfile. 
+Она может работать совместно с qemu, VirtualBox, VMWare и пр. </p>
+<p>О vagrant стоит знать потому, что в какой момент, эксперементируя с 
+виртуальными машинами, надоест каждый раз их устанавливать в условном VMWare.</p>
+<h2 id="distcc">Distcc</h2>
+<p>distcc<sup id="fnref:2"><a class="footnote-ref" href="#fn:2">2</a></sup> (от англ. distributed C/C++/ObjC compiler) — инструмент, 
+позволяющий компилировать исходные коды при помощи 
+компиляторов C/C++/ObjC на удалённых машинах, что ускоряет процесс компиляции.</p>
+<p>Важно понимать, что это своего рода фронтенд для компиляторов, 
+сам по себе он не компилирует код.</p>
+<h2 id="_3">Компиляция</h2>
+<h3 id="_4">Демонстрация стенда</h3>
+<p>Для начала построчно рассмотрим Vagrantfile.
+При его написании используется язык Ruby.</p>
+<p>Описание "шаблона" для виртуальных машин. В данном случае это Debian 
+12 Bookworm.</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Default box</span>
+<span class="n">box_name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;debian.jessie64.libvirt.box&quot;</span>
+</code></pre></div>
+<p>Файл можно скачать с сайта HashiCorp. </p>
+<p>Описание виртуальной машины, на которой будет основная компиляция:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Master</span>
+<span class="n">master_node</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="ss">:hostname</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="s2">&quot;master&quot;</span><span class="p">,</span><span class="w"> </span><span class="ss">:ip</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="s2">&quot;10.200.1.2&quot;</span><span class="p">,</span><span class="w"> </span><span class="ss">:memory</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="mi">1024</span><span class="p">,</span><span class="w"> </span><span class="ss">:cpu</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="mi">1</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>Характеристики:</p>
+<ul>
+<li>IP: 10.200.1.2,</li>
+<li>RAM: 1Gb,</li>
+<li>1 поток.</li>
+</ul>
+<p>Они похожи на характеристики моего нетбука, но занижены в целях демонстрации.</p>
+<p>Описание второстепенной виртуальной машины:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># List of slaves</span>
+<span class="n">slaves</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">[</span>
+<span class="w">  </span><span class="p">{</span><span class="w"> </span><span class="ss">:memory</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="mi">4096</span><span class="p">,</span><span class="w">  </span><span class="ss">:cpu</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="mi">4</span><span class="w"> </span><span class="p">},</span>
+<span class="o">]</span>
+</code></pre></div>
+<p>Характеристики:</p>
+<ul>
+<li>RAM: 4Gb,</li>
+<li>4 потока.</li>
+</ul>
+<p>Скрипт для автоматической установки зависимостей:</p>
+<div class="highlight"><pre><span></span><code><span class="vg">$distcc_install</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">&lt;&lt;-</span><span class="dl">SCRIPT</span>
+<span class="sh">apt update</span>
+<span class="sh">apt install -y make distcc gcc g++ tmux libz-dev git fakeroot build-essential ncurses-dev xz-utils libssl-dev bc flex libelf-dev bison time neofetch</span>
+<span class="dl">SCRIPT</span>
+</code></pre></div>
+<p>Старт конфигурации виртуальных машин:</p>
+<div class="highlight"><pre><span></span><code><span class="no">Vagrant</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span><span class="s2">&quot;2&quot;</span><span class="p">)</span><span class="w"> </span><span class="k">do</span><span class="w"> </span><span class="o">|</span><span class="n">config</span><span class="o">|</span>
+</code></pre></div>
+<p>Конфигурация основной машины:</p>
+<div class="highlight"><pre><span></span><code><span class="w">  </span><span class="c1"># Master node&#39;s config</span>
+<span class="w">  </span><span class="n">config</span><span class="o">.</span><span class="n">vm</span><span class="o">.</span><span class="n">box_check_update</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kp">false</span>
+<span class="w">  </span><span class="n">config</span><span class="o">.</span><span class="n">vm</span><span class="o">.</span><span class="n">define</span><span class="w"> </span><span class="n">master_node</span><span class="o">[</span><span class="ss">:hostname</span><span class="o">]</span><span class="w"> </span><span class="k">do</span><span class="w"> </span><span class="o">|</span><span class="n">nodeconfig</span><span class="o">|</span>
+<span class="w">    </span><span class="n">nodeconfig</span><span class="o">.</span><span class="n">vm</span><span class="o">.</span><span class="n">box</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">box_name</span>
+<span class="w">    </span><span class="n">nodeconfig</span><span class="o">.</span><span class="n">vm</span><span class="o">.</span><span class="n">hostname</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">master_node</span><span class="o">[</span><span class="ss">:hostname</span><span class="o">]</span>
+<span class="w">    </span><span class="n">nodeconfig</span><span class="o">.</span><span class="n">vm</span><span class="o">.</span><span class="n">network</span><span class="p">(</span><span class="ss">:private_network</span><span class="p">,</span><span class="w"> </span><span class="ss">ip</span><span class="p">:</span><span class="w"> </span><span class="n">master_node</span><span class="o">[</span><span class="ss">:ip</span><span class="o">]</span><span class="p">)</span>
+<span class="w">    </span><span class="n">nodeconfig</span><span class="o">.</span><span class="n">vm</span><span class="o">.</span><span class="n">provision</span><span class="w"> </span><span class="s2">&quot;shell&quot;</span><span class="p">,</span><span class="w"> </span><span class="ss">inline</span><span class="p">:</span><span class="w"> </span><span class="vg">$distcc_install</span>
+<span class="w">    </span><span class="n">nodeconfig</span><span class="o">.</span><span class="n">vm</span><span class="o">.</span><span class="n">provision</span><span class="w"> </span><span class="s2">&quot;file&quot;</span><span class="p">,</span><span class="w"> </span><span class="ss">source</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;./linux-6.13.tar.gz&quot;</span><span class="p">,</span><span class="w"> </span><span class="ss">destination</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;~/linux-6.13.tar.gz&quot;</span>
+<span class="w">    </span><span class="n">nodeconfig</span><span class="o">.</span><span class="n">vm</span><span class="o">.</span><span class="n">provider</span><span class="w"> </span><span class="ss">:libvirt</span><span class="w"> </span><span class="k">do</span><span class="w"> </span><span class="o">|</span><span class="n">vb</span><span class="o">|</span>
+<span class="w">      </span><span class="n">vb</span><span class="o">.</span><span class="n">memory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">master_node</span><span class="o">[</span><span class="ss">:memory</span><span class="o">]</span>
+<span class="w">      </span><span class="n">vb</span><span class="o">.</span><span class="n">cpus</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">master_node</span><span class="o">[</span><span class="ss">:cpu</span><span class="o">]</span>
+<span class="w">    </span><span class="k">end</span>
+<span class="w">  </span><span class="k">end</span>
+</code></pre></div>
+<p>В нем:</p>
+<ol>
+<li>Отключаются обновления,</li>
+<li>Задаются характеристики ВМ,</li>
+<li>Запускается скрипт установки зависимостей,</li>
+<li>Копируется 
+   <a href="https://cdn.kernel.org/pub/linux/kernel/v6.x/linux-6.13.tar.gz">архив</a>
+   с исходным кодом ядра (должен лежать в директории с Vagrantfile).</li>
+</ol>
+<p>Конфигурация второстепенных машин:</p>
+<div class="highlight"><pre><span></span><code><span class="w">  </span><span class="c1"># Slaves configs</span>
+<span class="w">  </span><span class="n">slaves</span><span class="o">.</span><span class="n">each_with_index</span><span class="w"> </span><span class="k">do</span><span class="w"> </span><span class="o">|</span><span class="n">slave</span><span class="p">,</span><span class="w"> </span><span class="n">i</span><span class="o">|</span>
+<span class="w">    </span><span class="n">config</span><span class="o">.</span><span class="n">vm</span><span class="o">.</span><span class="n">box_check_update</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kp">false</span>
+<span class="w">    </span><span class="n">config</span><span class="o">.</span><span class="n">vm</span><span class="o">.</span><span class="n">define</span><span class="w"> </span><span class="s2">&quot;slave-</span><span class="si">#{</span><span class="w"> </span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="w"> </span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span><span class="k">do</span><span class="w"> </span><span class="o">|</span><span class="n">nodeconfig</span><span class="o">|</span>
+<span class="w">      </span><span class="c1"># Default box-name (cause I have only it)</span>
+<span class="w">      </span><span class="n">nodeconfig</span><span class="o">.</span><span class="n">vm</span><span class="o">.</span><span class="n">box</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">box_name</span>
+
+<span class="w">      </span><span class="c1"># Hostname: slave-N</span>
+<span class="w">      </span><span class="n">nodeconfig</span><span class="o">.</span><span class="n">vm</span><span class="o">.</span><span class="n">hostname</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;slave-</span><span class="si">#{</span><span class="w"> </span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="w"> </span><span class="si">}</span><span class="s2">&quot;</span>
+
+<span class="w">      </span><span class="c1"># IP-address: 10.200.1.{N+2}</span>
+<span class="w">      </span><span class="n">nodeconfig</span><span class="o">.</span><span class="n">vm</span><span class="o">.</span><span class="n">network</span><span class="w"> </span><span class="ss">:private_network</span><span class="p">,</span><span class="w"> </span><span class="ss">ip</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;10.200.1.</span><span class="si">#{</span><span class="w"> </span><span class="n">i</span><span class="o">+</span><span class="mi">3</span><span class="w"> </span><span class="si">}</span><span class="s2">&quot;</span>
+<span class="w">      </span><span class="n">nodeconfig</span><span class="o">.</span><span class="n">vm</span><span class="o">.</span><span class="n">provision</span><span class="w"> </span><span class="s2">&quot;shell&quot;</span><span class="p">,</span><span class="w"> </span><span class="ss">inline</span><span class="p">:</span><span class="w"> </span><span class="vg">$distcc_install</span>
+<span class="w">      </span><span class="n">nodeconfig</span><span class="o">.</span><span class="n">vm</span><span class="o">.</span><span class="n">provider</span><span class="w"> </span><span class="ss">:libvirt</span><span class="w"> </span><span class="k">do</span><span class="w"> </span><span class="o">|</span><span class="n">vb</span><span class="o">|</span>
+<span class="w">        </span><span class="n">vb</span><span class="o">.</span><span class="n">memory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">slave</span><span class="o">[</span><span class="ss">:memory</span><span class="o">]</span>
+<span class="w">        </span><span class="n">vb</span><span class="o">.</span><span class="n">cpus</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">slave</span><span class="o">[</span><span class="ss">:cpu</span><span class="o">]</span>
+<span class="w">      </span><span class="k">end</span>
+<span class="w">    </span><span class="k">end</span>
+<span class="w">  </span><span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<p>Стоит обратить внимание, что IP задается автоматически, начиная от 
+<code>10.200.1.3</code> и далее. Сделано это на случай нескольких ВМ.</p>
+<h3 id="gcc">Компиляция на одной машине (gcc)</h3>
+<p>Для начала запустим стенд командой <code>vagrant up</code>. На моем ноутбуке это занимает 
+примерно 127 секунд.</p>
+<p>Далее необходимо подключиться к главной машине и распаковать исходники ядра<sup id="fnref:3"><a class="footnote-ref" href="#fn:3">3</a></sup>:</p>
+<div class="highlight"><pre><span></span><code>vagrant<span class="w"> </span>ssh<span class="w"> </span>master
+tar<span class="w"> </span>xvf<span class="w"> </span>linux-6.13.tar.gz
+<span class="nb">cd</span><span class="w"> </span>linux-6.13
+</code></pre></div>
+<p>Создаем файл минимальной конфигурации 
+(с остальными вариантам можно ознакомиться командой <code>make help | less</code>):</p>
+<div class="highlight"><pre><span></span><code>make<span class="w"> </span>tinyconfig
+</code></pre></div>
+<blockquote>
+<p><strong>Важно</strong>: для чистоты эксперимента все замеры делаются после команды <code>make 
+    distclean</code> (см. <code>make help</code>).</p>
+</blockquote>
+<p>Запускаем компиляцию с замером времени:</p>
+<div class="highlight"><pre><span></span><code><span class="nb">time</span><span class="w"> </span>-p<span class="w"> </span>make<span class="w"> </span><span class="nv">CC</span><span class="o">=</span>gcc
+</code></pre></div>
+<h3 id="distcc_1">Компиляция на одной машине (distcc)</h3>
+<p>По смыслу, все тоже самое, только нужно указать distcc, на каких хостах 
+можно компилировать:</p>
+<div class="highlight"><pre><span></span><code><span class="nb">export</span><span class="w"> </span><span class="nv">DISTCC_HOSTS</span><span class="o">=</span><span class="s2">&quot;localhost&quot;</span>
+</code></pre></div>
+<p>Запускаем компиляцию с замером времени:</p>
+<div class="highlight"><pre><span></span><code><span class="nb">time</span><span class="w"> </span>-p<span class="w"> </span>make<span class="w"> </span><span class="nv">CC</span><span class="o">=</span><span class="s2">&quot;distcc gcc&quot;</span>
+</code></pre></div>
+<h3 id="distcc_2">Компиляция на двух машинах (distcc)</h3>
+<p>Для запуска распределенной компиляции, нужно сначала запустить демон на
+второй виртуальной машине. Для этого подключаемся к ней и запускаем его:</p>
+<div class="highlight"><pre><span></span><code>vagrant<span class="w"> </span>ssh<span class="w"> </span>slave-1
+distccd<span class="w"> </span>--daemon<span class="w"> </span>--allow-private
+</code></pre></div>
+<p>Параметр <code>--allow-private</code> разрешает стучаться только с приватных сетей.</p>
+<p>Для проверки можно:</p>
+<ol>
+<li>На второй машине проверить открытые порты: <code>ss -ntlp | grep 3632</code>,</li>
+<li>С основной машины постучаться в этот порт: <code>telnet 10.200.1.3 3632</code> 
+   (выход на <code>C-] C-d</code>).</li>
+</ol>
+<p>Теперь нужно добавить хост, чтобы на нем можно было удаленно компилировать. 
+Для этого на основной машине:</p>
+<div class="highlight"><pre><span></span><code><span class="nb">export</span><span class="w"> </span><span class="nv">DISTCC_HOSTS</span><span class="o">=</span><span class="s2">&quot;localhost 10.200.1.3&quot;</span>
+</code></pre></div>
+<p>Для проверки можно посмотреть список хостов для компиляции: <code>distcc --show-hosts</code>.</p>
+<p>Запустим компиляцию на 5 потоках с замером времени:</p>
+<div class="highlight"><pre><span></span><code><span class="nb">time</span><span class="w"> </span>-p<span class="w"> </span>make<span class="w"> </span>-j5<span class="w"> </span><span class="nv">CC</span><span class="o">=</span><span class="s2">&quot;distcc gcc&quot;</span>
+</code></pre></div>
+<p>Мониторить компиляцию можно с помощью команды (на основной машине):</p>
+<div class="highlight"><pre><span></span><code>watch<span class="w"> </span>-n<span class="w"> </span><span class="m">1</span><span class="w"> </span>distccmon-text
+</code></pre></div>
+<p><img alt="distccmon-text" src="../assets/distccmon-text.png" /></p>
+<h3 id="_5">Таблица сравнения</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: center;">Итерация</th>
+<th style="text-align: center;">Одна машина (gcc), с</th>
+<th style="text-align: center;">Одна машина (distcc), с</th>
+<th style="text-align: center;">Две машины (distcc), с</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">176</td>
+<td style="text-align: center;">176</td>
+<td style="text-align: center;">111</td>
+</tr>
+<tr>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">186</td>
+<td style="text-align: center;">162</td>
+<td style="text-align: center;">109</td>
+</tr>
+<tr>
+<td style="text-align: center;">3</td>
+<td style="text-align: center;">187</td>
+<td style="text-align: center;">174</td>
+<td style="text-align: center;">127</td>
+</tr>
+<tr>
+<td style="text-align: center;">Среднее</td>
+<td style="text-align: center;">183</td>
+<td style="text-align: center;">170</td>
+<td style="text-align: center;">115</td>
+</tr>
+</tbody>
+</table>
+<h2 id="_6">Итог</h2>
+<p>Можно увидеть, что такая параллелизация дает прирост 37%. 
+Сложно сказать, можно ли разогнать сильнее, так как многое зависит от 
+правил компиляции (например, их нельзя распараллелить больше чем на 5 потоков).</p>
+<p>Очевидно, что распределенная компиляция при прочих равных будет проигрывать 
+параллельной, так как общение между потоками по определению быстрее. 
+Но для слабых машин это отлично подходит. К сожалению, у данного метода есть
+существенные ограничения:</p>
+<ol>
+<li>Версии gcc и distcc должны совпадать (хотя, пишут, что достаточно 
+    совпадения только мажорных версий).</li>
+<li>В некоторых случаях нет возможности общения по TCP и требуется подключение по 
+    SSH. Например, когда есть ограничения безопасности или при сложной организации 
+    сети. Определенно, такое подключение будет медленнее.</li>
+</ol>
+<p>Все материалы стенда можно найти в 
+<a href="https://github.com/rustbas/disgrant/">репозитории</a> на Github.</p>
+<div class="footnote">
+<hr />
+<ol>
+<li id="fn:1">
+<p>Википедия <a href="https://ru.wikipedia.org/wiki/Vagrant">Vagrant</a>.&#160;<a class="footnote-backref" href="#fnref:1" title="Jump back to footnote 1 in the text">&#8617;</a></p>
+</li>
+<li id="fn:2">
+<p>Википедия <a href="https://ru.wikipedia.org/wiki/Distcc">distcc</a>.&#160;<a class="footnote-backref" href="#fnref:2" title="Jump back to footnote 2 in the text">&#8617;</a></p>
+</li>
+<li id="fn:3">
+<p>Исходный код ядра можно найти <a href="https://cdn.kernel.org/pub/linux/kernel/v6.x/linux-6.13.tar.gz">здесь</a>.&#160;<a class="footnote-backref" href="#fnref:3" title="Jump back to footnote 3 in the text">&#8617;</a></p>
+</li>
+</ol>
+</div>
+
+
+
+
+
+
+
+  
+    
+  
+  
+
+
+  <aside class="md-source-file">
+    
+      
+  <span class="md-source-file__fact">
+    <span class="md-icon" title="Last update">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
+    </span>
+    2025-06-02
+  </span>
+
+    
+    
+    
+    
+  </aside>
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+      <div class="md-progress" data-md-component="progress" role="progressbar"></div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.instant", "navigation.instant.progress", "header.autohide"], "search": "../../assets/javascripts/workers/search.d50fe291.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.13a4f30d.min.js"></script>
+      
+        <script src="../../javascripts/mathjax.js"></script>
+      
+        <script src="https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>
